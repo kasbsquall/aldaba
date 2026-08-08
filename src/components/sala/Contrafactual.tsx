@@ -88,8 +88,8 @@ export function Contrafactual({ onTerminar }: { onTerminar: () => void }) {
         zIndex: 50,
         background: "var(--fondo)",
         display: "grid",
-        placeItems: "center",
-        padding: "var(--hueco-8)",
+        placeItems: "center start",
+        padding: "var(--hueco-8) clamp(var(--hueco-6), 7vw, var(--hueco-32))",
         opacity: saliendo ? 0 : 1,
         // Cinturon y tirantes: en cuanto empieza a salir deja de recibir clics,
         // asi que ni siquiera un fallo de desmontaje puede bloquear la pagina.
@@ -122,7 +122,7 @@ export function Contrafactual({ onTerminar }: { onTerminar: () => void }) {
         Saltar
       </button>
 
-      <div style={{ maxWidth: "44rem", width: "100%" }}>
+      <div style={{ maxWidth: "68rem", width: "100%" }}>
         <p
           className="surge"
           style={{
@@ -140,9 +140,10 @@ export function Contrafactual({ onTerminar }: { onTerminar: () => void }) {
           className="surge"
           style={{
             // Un solo bloque de texto grande, y el resto callado.
-            fontSize: "var(--paso-5)",
+            fontSize: "clamp(var(--paso-5), 5.5vw, var(--paso-7))",
             margin: "var(--hueco-3) 0 var(--hueco-12)",
-            maxWidth: "28ch",
+            maxWidth: "20ch",
+            lineHeight: 0.94,
             ["--i" as string]: 1,
           }}
         >
@@ -154,10 +155,11 @@ export function Contrafactual({ onTerminar }: { onTerminar: () => void }) {
           className="surge"
           style={{
             ["--i" as string]: 2,
-            border: "1px solid var(--linea)",
+            border: "1px solid var(--linea-fuerte)",
             borderRadius: "var(--radio)",
-            background: "var(--fondo-hundido)",
-            padding: "var(--hueco-6)",
+            background: "var(--hueso-200)",
+            padding: "var(--hueco-6) var(--hueco-8)",
+            maxWidth: "52rem",
           }}
         >
           <div
@@ -205,9 +207,9 @@ export function Contrafactual({ onTerminar }: { onTerminar: () => void }) {
                 className="dato"
                 aria-live="off"
                 style={{
-                  fontSize: "var(--paso-6)",
+                  fontSize: "clamp(var(--paso-6), 6vw, var(--paso-7))",
                   fontWeight: 600,
-                  lineHeight: 1,
+                  lineHeight: 0.9,
                   letterSpacing: "-0.035em",
                   marginTop: "var(--hueco-2)",
                   color: "var(--tinta)",
