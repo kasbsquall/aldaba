@@ -5,6 +5,7 @@ import { ArrowsClockwise } from "@phosphor-icons/react";
 import { AldabaLogo } from "@/components/marca/Aldaba";
 import { Proveedor, type Identidad } from "./providers";
 import { useSala } from "@/components/sala/useSala";
+import { Contrafactual, usarContrafactual } from "@/components/sala/Contrafactual";
 import {
   CarrilProtagonista,
   ContadorEscasez,
@@ -32,11 +33,23 @@ function usarSesion(): string | null {
 
 export default function Pagina() {
   const sesion = usarSesion();
-  if (!sesion) return null;
-  return <Proveedor>{(identidad) => <Sala sesion={sesion} identidad={identidad} />}</Proveedor>;
+  const [mostrarAntes, cerrarAntes] = usarContrafactual(sesion);
+
+  // Nunca devolver null aqui. El id de sala solo existe despues de hidratar, y si
+  // el componente se vacia mientras tanto la pagina entera queda en blanco: no hay
+  // cabecera, no hay esqueleto, no hay nada que indique que algo esta cargando.
+  // El armazon se pinta siempre y lo unico que espera al id es el tablero.
+  return (
+    <>
+      {/* La sala arranca detras mientras corre el contrafactual, para que al
+          terminar los ocho segundos el tablero ya este vivo en vez de vacio. */}
+      <Proveedor>{(identidad) => <Sala sesion={sesion} identidad={identidad} />}</Proveedor>
+      {mostrarAntes && <Contrafactual onTerminar={cerrarAntes} />}
+    </>
+  );
 }
 
-function Sala({ sesion, identidad }: { sesion: string; identidad: Identidad | null }) {
+function Sala({ sesion, identidad }: { sesion: string | null; identidad: Identidad | null }) {
   const { tablero, miCarril, decidir, reiniciar } = useSala(sesion, identidad?.id ?? null);
 
   const nombreDe = useMemo(() => {

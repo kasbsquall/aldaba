@@ -21,16 +21,20 @@ export interface Sala {
   reiniciar: () => Promise<void>;
 }
 
-export function useSala(sesionId: string, miId: string | null): Sala {
+export function useSala(sesionId: string | null, miId: string | null): Sala {
   const [arrancando, setArrancando] = useState(true);
   const pedido = useRef(false);
 
-  const { messages, status } = useChannel({ channelId: canalDeCaso(sesionId) });
+  // `channelId: undefined` deja el hook inerte y sin abrir conexion, que es lo
+  // correcto mientras el id de sala todavia no existe.
+  const { messages, status } = useChannel({
+    channelId: sesionId ? canalDeCaso(sesionId) : undefined,
+  });
 
   // El escenario arranca solo al abrir la URL. Nunca hay un estado inicial vacio
   // esperando a que el visitante haga algo.
   useEffect(() => {
-    if (pedido.current) return;
+    if (!sesionId || pedido.current) return;
     pedido.current = true;
     void fetch("/api/sesion", {
       method: "POST",
@@ -52,7 +56,7 @@ export function useSala(sesionId: string, miId: string | null): Sala {
   }, [tablero, miId]);
 
   async function decidir(agente: string, decision: "aprobado" | "rechazado") {
-    if (!miId) return;
+    if (!miId || !sesionId) return;
     await fetch("/api/veredicto", {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -61,6 +65,7 @@ export function useSala(sesionId: string, miId: string | null): Sala {
   }
 
   async function reiniciar() {
+    if (!sesionId) return;
     await fetch("/api/sesion", {
       method: "POST",
       headers: { "content-type": "application/json" },
