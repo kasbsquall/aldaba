@@ -1,25 +1,28 @@
-/* La marca de Aldaba.
+/* La marca de Aldaba: la cadena.
  *
- * Una aldaba es el llamador que cuelga de una puerta: una placa fija y un anillo que
- * pivota sobre ella para golpear. Esas dos formas son todo el simbolo, y por eso
- * sobrevive a 16px de favicon sin convertirse en una mancha.
+ * Tres anillos que decrecen hacia la derecha. Es lo unico que hace el producto,
+ * dibujado: una puerta, otra puerta, otra puerta. El primero es el toque que
+ * ocurre ahora; los dos siguientes son las puertas que vienen si nadie abre.
  *
- * El anillo pivota desde donde cuelga, no desde su centro, que es como se mueve una
- * aldaba de verdad. Ese detalle es la diferencia entre un icono que gira y uno que
- * golpea. */
+ * A tamano chico los anillos menores colapsan a puntos solidos. Un anillo de radio
+ * pequeno con trazo grueso deja un hueco de dos pixeles que a 16px se cierra solo y
+ * termina viendose como una mancha sucia. Un punto solido a ese tamano se lee
+ * limpio y cuenta lo mismo. Por eso no se usa opacidad para jerarquizar: a tamano
+ * de favicon el degradado hunde el tercer anillo hasta desaparecerlo. */
 
 interface MarcaProps {
-  /** Lado en px. El trazo se ajusta solo para que no desaparezca en tamanos chicos. */
+  /** Lado en px. */
   tam?: number;
-  /** Anima el golpe. Se usa cuando un agente toca una puerta. */
+  /** Anima el escalamiento: los anillos se encienden en secuencia. */
   golpea?: boolean;
   className?: string;
 }
 
 export function AldabaMarca({ tam = 24, golpea = false, className }: MarcaProps) {
-  // A tamano pequeno el trazo fino se pierde: por debajo de 20px se engorda. Es el
-  // mismo motivo por el que Bricolage trae eje de optical size.
-  const trazo = tam < 20 ? 2.6 : tam < 40 ? 2.2 : 1.9;
+  // Por debajo de 22px el trazo fino se pierde contra el fondo y hay que engordarlo.
+  const trazo = tam < 22 ? 2.4 : tam < 44 ? 2.1 : 1.9;
+  // Umbral donde el anillo medio deja de tener hueco util.
+  const compacto = tam < 26;
 
   return (
     <svg
@@ -31,30 +34,41 @@ export function AldabaMarca({ tam = 24, golpea = false, className }: MarcaProps)
       role="img"
       aria-label="Aldaba"
     >
-      {/* La placa. Fija, nunca se mueve. */}
-      <rect x="8" y="2.5" width="8" height="2.6" rx="1.3" fill="currentColor" />
+      {/* El toque que ocurre ahora. Siempre anillo, a cualquier tamano. */}
+      <circle
+        cx="7.6"
+        cy="12"
+        r="5.4"
+        stroke="currentColor"
+        strokeWidth={trazo}
+        style={golpea ? { animation: "cadena 900ms var(--curva-entrada) both" } : undefined}
+      />
 
-      {/* El anillo. Pivota desde la placa, que es de donde cuelga. */}
-      <g
-        style={{
-          transformOrigin: "12px 4px",
-          animation: golpea ? "golpe 620ms cubic-bezier(0.23, 1, 0.32, 1)" : undefined,
-        }}
-      >
-        <path
-          d="M12 5.1v2.4"
-          stroke="currentColor"
-          strokeWidth={trazo}
-          strokeLinecap="round"
-        />
-        <circle cx="12" cy="14.6" r="6.1" stroke="currentColor" strokeWidth={trazo} />
-      </g>
+      {/* La segunda puerta. */}
+      {compacto ? (
+        <circle cx="16.6" cy="12" r="2.1" fill="currentColor" />
+      ) : (
+        <circle cx="16.6" cy="12" r="3.2" stroke="currentColor" strokeWidth={trazo} />
+      )}
+
+      {/* La tercera. Siempre punto: es la que menos pesa y la que mas lejos esta. */}
+      <circle
+        cx="21.6"
+        cy="12"
+        r={compacto ? 1.1 : 1.4}
+        fill="currentColor"
+        style={
+          golpea
+            ? { animation: "cadena 900ms var(--curva-entrada) both", animationDelay: "220ms" }
+            : undefined
+        }
+      />
     </svg>
   );
 }
 
-/** Marca mas nombre. El nombre en versalitas con tracking abierto, que es como se
- *  comporta una firma editorial y no un logo de startup. */
+/** Marca mas nombre. El nombre en versalitas con tracking abierto, que se comporta
+ *  como una firma editorial y no como un logo de startup. */
 export function AldabaLogo({ tam = 22 }: { tam?: number }) {
   return (
     <span

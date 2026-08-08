@@ -186,12 +186,11 @@ p {
   }
 }
 
-/* El golpe de la aldaba. El anillo cae contra la placa y rebota una vez, como haria
- * un llamador de bronce. Solo transform, y cubierto por prefers-reduced-motion. */
-@keyframes golpe {
-  0% { transform: rotate(0deg); }
-  22% { transform: rotate(-15deg); }
-  48% { transform: rotate(6deg); }
-  70% { transform: rotate(-3deg); }
-  100% { transform: rotate(0deg); }
+/* El escalamiento de la cadena. Los anillos se encienden en secuencia, como la
+ * onda de un golpe que se propaga hacia la siguiente puerta. Solo transform y
+ * opacity, y cubierto por prefers-reduced-motion. */
+@keyframes cadena {
+  0% { opacity: 0.25; transform: scale(0.9); }
+  40% { opacity: 1; transform: scale(1.06); }
+  100% { opacity: 1; transform: scale(1); }
 }
