@@ -664,6 +664,11 @@ function moneda(m: { valor: number; moneda: string }) {
   return `${simbolo} ${m.valor.toLocaleString("es-PE")}`;
 }
 
+/** Como aparece un monto escrito dentro de las lineas del resumen. */
+function formatoMonto(valor: number): string {
+  return valor.toLocaleString("es-PE").replace(/,/g, " ");
+}
+
 /** Lo que tarda un carril en volver con otra operacion. */
 const PAUSA_RELEVO = 9_000;
 
@@ -678,6 +683,14 @@ function variar(spec: AgenteSpec, vuelta: number): AgenteSpec {
   const factor = 0.6 + ((vuelta * 37) % 90) / 100;
   const valor = Math.round((spec.monto.valor * factor) / 100) * 100;
 
+  // El resumen cita cifras concretas, asi que si cambia el monto tiene que cambiar
+  // con el. Ya me paso con la contraparte: la cabecera decia un numero y el
+  // razonamiento seguia afirmando otro, en el bloque al que un jurado de banca le
+  // presta mas atencion. Se reescriben las lineas que mencionan el monto original.
+  const antes = formatoMonto(spec.monto.valor);
+  const ahora = formatoMonto(valor);
+  const resumen = spec.resumen.map((l) => l.split(antes).join(ahora));
+
   // La contraparte NO cambia, a proposito.
   //
   // Variarla dejaba la cabecera diciendo "203 colaboradores" mientras el
@@ -689,10 +702,10 @@ function variar(spec: AgenteSpec, vuelta: number): AgenteSpec {
   return {
     ...spec,
     monto: { ...spec.monto, valor },
+    resumen,
     // El plazo tambien se mueve, para que los cinco relojes no caigan en fase.
     plazo: spec.plazo + ((vuelta * 5) % 9) - 4,
     bloqueaEn: 4 + ((vuelta * 3) % 7),
-    resumen: spec.resumen,
   };
 }
 
