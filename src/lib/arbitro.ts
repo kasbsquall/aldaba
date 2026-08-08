@@ -67,7 +67,11 @@ Devuelves únicamente un JSON, sin texto alrededor, con esta forma exacta:
 
 El motivo va en español, en menos de 130 caracteres, y explica el criterio real que
 usaste. Si cedes el turno a la operación de menor monto, di por qué. Nada de frases
-genéricas ni de repetir los datos que ya están en pantalla.`;
+genéricas ni de repetir los datos que ya están en pantalla.
+
+En el motivo NUNCA escribas los identificadores (ag_fx, refund, ag_payroll). Usa el
+nombre de la operación tal como lo ve el usuario: "la cobertura cambiaria", "el
+reembolso masivo". Los ids solo van en el campo "orden".`;
 
 /**
  * Reparte la atención disponible entre los agentes que la están pidiendo.

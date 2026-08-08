@@ -36,6 +36,28 @@ export function hayModeloEnVivo(): boolean {
 export function guionDe(spec: AgenteSpec): PasoRazonamiento[] {
   const monto = `${spec.monto.moneda === "USD" ? "US$" : "S/"} ${spec.monto.valor.toLocaleString("es-PE")}`;
 
+  // Las lineas especificas de este agente, que ya estan escritas y son verificables
+  // contra sus propios datos. La plantilla generica que habia antes producia frases
+  // sin sentido en cuanto la contraparte no era una empresa: decia "los datos del
+  // beneficiario coinciden con el contrato" hablando de la mesa de dinero interna.
+  const suyas: PasoRazonamiento[] = spec.resumen.map((texto, i) => ({
+    texto,
+    pausa: conJitter(1500 + i * 120),
+  }));
+
+  return [
+    {
+      texto: `Recibí la orden: ${spec.operacion.toLowerCase()} por ${monto}.`,
+      pausa: conJitter(1300),
+    },
+    ...suyas,
+  ];
+}
+
+/** Traza generica, solo como ultimo respaldo. */
+function guionGenerico(spec: AgenteSpec): PasoRazonamiento[] {
+  const monto = `${spec.monto.moneda === "USD" ? "US$" : "S/"} ${spec.monto.valor.toLocaleString("es-PE")}`;
+
   return [
     {
       texto: `Recibí la orden: ${spec.operacion.toLowerCase()} por ${monto}.`,

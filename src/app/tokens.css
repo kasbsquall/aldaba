@@ -222,10 +222,30 @@ p {
   }
 }
 
-/* El aire va entre bloques, nunca dentro de las filas. */
+/* El aire va entre bloques, nunca dentro de las filas.
+ *
+ * Y no va repartido por igual: un `gap` uniforme daba tres huecos identicos de 64px
+ * y la pagina se leia con pulso de metronomo, que es justo lo que la direccion lista
+ * como prohibido. Aqui el corte grande separa la apertura del tablero, y lo que
+ * comenta la misma cosa va pegado. Con esto el intervalo menor es 8px y el mayor 128,
+ * asi que el ratio real pasa de 1:8 a 1:16. */
 .columna-principal {
   display: grid;
-  gap: var(--hueco-16);
+  gap: 0;
+}
+
+/* La banda de apertura: el contador y su frase son una sola cosa. */
+.apertura {
+  display: grid;
+  gap: var(--hueco-6);
+}
+
+/* El silencio antes de que empiece el tablero. Es el unico intervalo grande de la
+ * pagina y por eso funciona: si hubiera tres, no habria ninguno. */
+.tablero {
+  margin-top: var(--hueco-32);
+  display: grid;
+  gap: var(--hueco-4);
 }
 
 .panel {

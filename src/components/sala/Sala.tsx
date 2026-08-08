@@ -128,9 +128,10 @@ function Tablero({ sesion, identidad }: { sesion: string | null; identidad: Iden
 
       <main className="sala">
         <div className="columna-principal">
-          <ContadorEscasez tablero={tablero} />
+          <div className="apertura">
+            <ContadorEscasez tablero={tablero} />
 
-          <p
+            <p
             style={{
               maxWidth: "54ch",
               fontSize: "var(--paso-1)",
@@ -140,21 +141,24 @@ function Tablero({ sesion, identidad }: { sesion: string | null; identidad: Iden
           >
             Cinco agentes necesitan una firma humana para seguir. En vez de esperar,
             cada uno busca quién está libre en este momento y le toca la puerta. Si
-            nadie abre dentro del plazo, escala solo a la siguiente persona.
-          </p>
+              nadie abre dentro del plazo, escala solo a la siguiente persona.
+            </p>
+          </div>
 
-          <Arbitraje arbitraje={tablero.arbitraje} />
+          <div className="tablero">
+            <Arbitraje arbitraje={tablero.arbitraje} />
 
-          {protagonista ? (
+            {protagonista ? (
             <CarrilProtagonista
               carril={protagonista}
               esMio={protagonista.id === miCarril}
               nombreDe={nombreDe}
               onDecidir={(d) => void decidir(protagonista.id, d)}
             />
-          ) : (
-            <Esqueleto />
-          )}
+            ) : (
+              <Esqueleto />
+            )}
+          </div>
         </div>
 
         <aside className="panel surge">

@@ -120,7 +120,17 @@ export function reducir(previo: Tablero, m: MensajeEntrante): Tablero {
         arrancado: true,
         carriles: c.agentes.map((a) => {
           const anterior = previos.get(a.id);
-          if (anterior && anterior.operacion === a.operacion) return anterior;
+          // Solo se reutiliza si ademas seguia abierto. Un carril cerrado que vuelve
+          // con la misma clase de operacion es un caso NUEVO, y conservarlo hacia que
+          // la cadena de puertas se acumulara entre vueltas: llegue a ver 19 fichas
+          // sobre un roster de tres personas, con la pantalla contradiciendo por seis
+          // el "3 puertas" que promete el bloque de umbrales.
+          const abierto =
+            anterior &&
+            anterior.estado !== "aprobado" &&
+            anterior.estado !== "rechazado" &&
+            anterior.estado !== "retenido";
+          if (anterior && abierto && anterior.operacion === a.operacion) return anterior;
           return {
             id: a.id,
             nombre: a.nombre,

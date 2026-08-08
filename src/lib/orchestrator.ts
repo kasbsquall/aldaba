@@ -677,26 +677,24 @@ const PAUSA_RELEVO = 9_000;
 function variar(spec: AgenteSpec, vuelta: number): AgenteSpec {
   const factor = 0.6 + ((vuelta * 37) % 90) / 100;
   const valor = Math.round((spec.monto.valor * factor) / 100) * 100;
-  const contraparte = OTRAS_CONTRAPARTES[spec.id]?.[vuelta % 3] ?? spec.contraparte;
 
+  // La contraparte NO cambia, a proposito.
+  //
+  // Variarla dejaba la cabecera diciendo "203 colaboradores" mientras el
+  // razonamiento seguia afirmando "los 84 colaboradores coinciden con la planilla":
+  // la pantalla contradiciendose consigo misma en el bloque que el jurado del sector
+  // financiero va a leer con mas atencion. El resumen esta escrito contra datos
+  // concretos, asi que o cambian los dos o no cambia ninguno. El monto y el plazo
+  // bastan para que dos vueltas no se lean como un bucle.
   return {
     ...spec,
     monto: { ...spec.monto, valor },
-    contraparte,
     // El plazo tambien se mueve, para que los cinco relojes no caigan en fase.
     plazo: spec.plazo + ((vuelta * 5) % 9) - 4,
     bloqueaEn: 4 + ((vuelta * 3) % 7),
     resumen: spec.resumen,
   };
 }
-
-const OTRAS_CONTRAPARTES: Record<string, string[]> = {
-  ag_transfer: ["Servicios Kañaris SAC", "Import Yarinacocha EIRL", "Textil Chincha SAC"],
-  ag_refund: ["148 clientes afectados", "1 204 clientes afectados", "77 clientes afectados"],
-  ag_limit: ["Distribuidora Tarma SRL", "Agro Motupe SAC", "Ferretería Junín EIRL"],
-  ag_fx: ["Mesa de dinero", "Cobertura de importaciones", "Posición de tesorería"],
-  ag_payroll: ["112 colaboradores", "58 colaboradores", "203 colaboradores"],
-};
 
 function nombreDe(id: string): string {
   return SEMBRADOS.find((a) => a.id === id)?.nombre ?? id;

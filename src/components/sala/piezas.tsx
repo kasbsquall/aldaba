@@ -180,6 +180,10 @@ export function Roster({
             }}
           >
             {a.id === miId && onDeclarar ? (
+              <>
+                {a.atendiendo ? (
+                  <span style={{ marginRight: "var(--hueco-2)" }}>atendiendo</span>
+                ) : null}
               <button
                 type="button"
                 onClick={() => onDeclarar(!ocupado)}
@@ -189,7 +193,8 @@ export function Roster({
                   font: "inherit",
                   fontSize: "var(--paso--1)",
                   cursor: "pointer",
-                  padding: "2px var(--hueco-2)",
+                  minHeight: "2rem",
+                  padding: "var(--hueco-1) var(--hueco-3)",
                   borderRadius: "var(--radio)",
                   border: `1px solid ${ocupado ? "transparent" : "var(--linea-fuerte)"}`,
                   background: ocupado ? "var(--tinta)" : "transparent",
@@ -199,6 +204,7 @@ export function Roster({
               >
                 {ocupado ? "ocupado · volver" : "marcarme ocupado"}
               </button>
+              </>
             ) : (
               <>
                 {a.ocupado
@@ -208,7 +214,7 @@ export function Roster({
                     : a.conectado
                       ? "libre"
                       : "ausente"}
-                {a.sembrado ? " · automático" : ""}
+                {a.sembrado ? " · agente" : ""}
               </>
             )}
           </span>
@@ -551,7 +557,7 @@ function Cadena({ carril, nombreDe }: { carril: CarrilVista; nombreDe: (id: stri
           margin: "var(--hueco-2) 0 0",
         }}
       >
-        {carril.cadena.map((p, i) => (
+        {carril.cadena.slice(-3).map((p, i) => (
           <li
             key={`${p.aprobador}-${i}`}
             className="surge-fila"
@@ -563,8 +569,10 @@ function Cadena({ carril, nombreDe }: { carril: CarrilVista; nombreDe: (id: stri
                 gap: "var(--hueco-1)",
                 fontSize: "var(--paso--1)",
                 padding: "var(--hueco-1) var(--hueco-2)",
-                background: p.vencio ? "var(--fondo-hundido)" : "var(--urgente-fondo)",
-                color: p.vencio ? "var(--tinta-tenue)" : "var(--urgente)",
+                background: p.vencio ? "transparent" : "var(--fondo-hundido)",
+                border: `1px solid ${p.vencio ? "var(--linea)" : "transparent"}`,
+                color: p.vencio ? "var(--tinta-tenue)" : "var(--tinta)",
+                fontWeight: p.vencio ? 400 : 600,
                 borderRadius: "var(--radio)",
               } as React.CSSProperties
             }
