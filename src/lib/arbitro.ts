@@ -108,7 +108,12 @@ export async function arbitrar(
       },
       body: JSON.stringify({
         model: MODELO,
-        max_tokens: 220,
+        // Medido, no estimado: con los cinco carriles en disputa la respuesta gasta
+        // 257 tokens. Los 220 de antes cortaban el JSON a media frase, la llave de
+        // cierre no llegaba nunca y el arbitro caia a la regla el 100% de las veces
+        // justo en el caso de contencion para el que existe. Con dos agentes cabia,
+        // asi que en las pruebas cortas no se veia.
+        max_tokens: 600,
         system: SISTEMA,
         messages: [
           {
@@ -127,8 +132,19 @@ export async function arbitrar(
 
     const data = (await r.json()) as { content?: { type: string; text?: string }[] };
     const texto = data.content?.find((b) => b.type === "text")?.text ?? "";
-    const json = texto.slice(texto.indexOf("{"), texto.lastIndexOf("}") + 1);
-    const salida = JSON.parse(json) as { orden?: string[]; motivo?: string };
+    const abre = texto.indexOf("{");
+    const cierra = texto.lastIndexOf("}");
+    // Un recorte por presupuesto deja el JSON sin llave de cierre. Sin esta guarda,
+    // `slice` devolvia cadena vacia y el error que salia por consola era
+    // "Unexpected end of JSON input", que apunta al parser y no a la causa.
+    if (abre === -1 || cierra < abre) {
+      console.error("[aldaba] arbitro: respuesta sin JSON cerrado, largo", texto.length);
+      return porRegla(disputa);
+    }
+    const salida = JSON.parse(texto.slice(abre, cierra + 1)) as {
+      orden?: string[];
+      motivo?: string;
+    };
 
     const validos = new Set(disputa.map((d) => d.agente.id));
     const orden = (salida.orden ?? []).filter((id) => validos.has(id));
