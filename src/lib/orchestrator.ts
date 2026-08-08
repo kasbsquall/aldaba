@@ -1,5 +1,6 @@
 import { SalaServidor } from "./portal-server";
 import { altaDeMiembros } from "./portal-admin";
+import { ActorSembrado } from "./seeded";
 import { APROBADORES, AGENTES, type AgenteSpec } from "./cast";
 import { canalDeCaso, type MensajeAldaba } from "./protocol";
 
@@ -43,6 +44,7 @@ export class Sesion {
   private carriles = new Map<string, Carril>();
   /** Quien esta atendiendo que carril. Una persona, un carril. */
   private ocupados = new Map<string, string>();
+  private actores: ActorSembrado[] = [];
   private temporizadores: ReturnType<typeof setTimeout>[] = [];
   private arrancadaEn = 0;
   private viva = false;
@@ -97,6 +99,16 @@ export class Sesion {
         })),
       },
     });
+
+    // Los aprobadores sembrados abren su propia conexion con su propia identidad, asi
+    // que la presencia que lee el enrutamiento es real. Lo guionado es su conducta.
+    this.actores = APROBADORES.filter((a) => a.guion).map(
+      (a) =>
+        new ActorSembrado(a, this.canalId, (agente, aprobador, decision) =>
+          this.resolver(agente, aprobador, decision)
+        )
+    );
+    this.actores.forEach((a) => a.planificar());
 
     // Cada agente cruza su umbral en su propio momento. Escalonarlos es lo que hace
     // que el tablero tenga tension desde el segundo cero en vez de encenderse de golpe.
@@ -344,6 +356,8 @@ export class Sesion {
 
   detener(): void {
     this.viva = false;
+    this.actores.forEach((a) => a.detener());
+    this.actores = [];
     this.temporizadores.forEach(clearTimeout);
     this.temporizadores = [];
     for (const c of this.carriles.values()) {
