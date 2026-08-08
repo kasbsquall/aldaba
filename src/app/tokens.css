@@ -1,0 +1,187 @@
+/* Tokens de Aldaba, en tres capas: primitivas, semanticas y de componente.
+ *
+ * Las primitivas no se usan nunca en un componente. Un componente lee semanticas o
+ * tokens propios, y asi cambiar el sentido de un color es tocar una linea y no
+ * cazarlo por todo el proyecto.
+ *
+ * Direccion: sala de control editorial. Ver docs/02-direccion-diseno.md. */
+
+/* ── Capa 1 · Primitivas ─────────────────────────────────────────────────────
+ * Una sola familia de grises, tintada calida de forma consistente. Ni negro ni
+ * blanco puros: ambos se sienten digitales y planos contra tinta real. */
+:root {
+  --hueso-50: oklch(98.2% 0.006 78);
+  --hueso-100: oklch(96.4% 0.008 76);
+  --hueso-200: oklch(93.1% 0.009 74);
+  --hueso-300: oklch(87.4% 0.010 72);
+  --hueso-400: oklch(72.6% 0.011 68);
+  --hueso-500: oklch(58.0% 0.012 64);
+  --hueso-600: oklch(45.2% 0.013 60);
+  --hueso-700: oklch(34.0% 0.014 56);
+  --hueso-800: oklch(25.6% 0.014 52);
+  --hueso-900: oklch(18.4% 0.013 48);
+
+  /* Acento unico. Solo significa una cosa: el plazo esta por vencer. Que el rojo
+   * quiera decir siempre lo mismo es lo que lo hace legible de un vistazo. */
+  --senal-500: oklch(55.4% 0.203 27);
+  --senal-600: oklch(48.0% 0.192 27);
+  --senal-100: oklch(94.0% 0.038 27);
+
+  /* Verde apagado, deliberadamente discreto: resolver es el estado tranquilo y no
+   * tiene que competir por atencion con lo que esta a punto de vencer. */
+  --resuelto-500: oklch(52.0% 0.086 158);
+  --resuelto-100: oklch(94.5% 0.024 158);
+
+  /* Escala tipografica modular 1.25 desde 11px. */
+  --paso--1: 0.6875rem;
+  --paso-0: 0.8125rem;
+  --paso-1: 0.9375rem;
+  --paso-2: 1.1875rem;
+  --paso-3: 1.5rem;
+  --paso-4: 1.875rem;
+  --paso-5: 2.5rem;
+  --paso-6: 3.25rem;
+  --paso-7: 4.75rem;
+
+  /* Espaciado con ritmo: de 4px a 128px es un ratio de 1:32. Si todo viviera entre
+   * 8 y 48px seguiria siendo uniforme, y la uniformidad se nota. */
+  --hueco-1: 0.25rem;
+  --hueco-2: 0.5rem;
+  --hueco-3: 0.75rem;
+  --hueco-4: 1rem;
+  --hueco-6: 1.5rem;
+  --hueco-8: 2rem;
+  --hueco-12: 3rem;
+  --hueco-16: 4rem;
+  --hueco-24: 6rem;
+  --hueco-32: 8rem;
+
+  --curva-entrada: cubic-bezier(0.23, 1, 0.32, 1);
+  --curva-mov: cubic-bezier(0.77, 0, 0.175, 1);
+  --dur-micro: 130ms;
+  --dur-ui: 220ms;
+  --dur-bloque: 260ms;
+}
+
+/* ── Capa 2 · Semanticas ──────────────────────────────────────────────────── */
+:root {
+  --fondo: var(--hueso-100);
+  --fondo-elevado: var(--hueso-50);
+  --fondo-hundido: var(--hueso-200);
+
+  --tinta: var(--hueso-900);
+  --tinta-media: var(--hueso-600);
+  --tinta-tenue: var(--hueso-500);
+
+  /* Divisorias finas con alfa bajo. Una linea que se ve como linea y no como barra. */
+  --linea: color-mix(in oklch, var(--hueso-900) 9%, transparent);
+  --linea-fuerte: color-mix(in oklch, var(--hueso-900) 16%, transparent);
+
+  --urgente: var(--senal-500);
+  --urgente-fondo: var(--senal-100);
+  --resuelto: var(--resuelto-500);
+  --resuelto-fondo: var(--resuelto-100);
+
+  /* Las sombras se tintan con el tono del fondo, nunca negro a baja opacidad. */
+  --sombra-baja: 0 1px 2px color-mix(in oklch, var(--hueso-800) 8%, transparent);
+  --sombra-alta: 0 2px 4px color-mix(in oklch, var(--hueso-800) 6%, transparent),
+    0 12px 32px -8px color-mix(in oklch, var(--hueso-800) 10%, transparent);
+
+  --fuente-voz: "Bricolage Grotesque Variable", Georgia, serif;
+  --fuente-dato: "Martian Mono Variable", ui-monospace, monospace;
+
+  /* Radio de 2px porque son datos duros. Los 12 a 16px de shadcn son un delator. */
+  --radio: 2px;
+}
+
+/* ── Capa 3 · Componente ──────────────────────────────────────────────────── */
+:root {
+  /* El contador de escasez es el protagonista: 76px junto a etiquetas de 11px es
+   * un ratio de casi 7x, que es la jerarquia que hace que se lea a un metro. */
+  --escasez-cifra: var(--paso-7);
+  --escasez-etiqueta: var(--paso--1);
+
+  --carril-reloj: var(--paso-5);
+  --carril-reloj-menor: var(--paso-2);
+  --carril-monto: var(--paso-3);
+
+  --fila-alto: 2.75rem;
+  --panel-ancho-menor: 22rem;
+}
+
+/* ── Base ─────────────────────────────────────────────────────────────────── */
+html {
+  color-scheme: light;
+}
+
+body {
+  background: var(--fondo);
+  color: var(--tinta);
+  font-family: var(--fuente-voz);
+  font-size: var(--paso-1);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Obligatorio en todo dato numerico. Sin esto los relojes bailan al pasar de 9 a
+ * 10 y el movimiento lateral distrae mas que el propio conteo. */
+.dato {
+  font-family: var(--fuente-dato);
+  font-variant-numeric: tabular-nums lining-nums slashed-zero;
+  letter-spacing: -0.01em;
+}
+
+h1,
+h2,
+h3 {
+  font-weight: 600;
+  text-wrap: balance;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+/* Foco visible siempre. Quitarlo es el fallo de accesibilidad mas comun y el mas
+ * facil de evitar. */
+:focus-visible {
+  outline: 2px solid var(--tinta);
+  outline-offset: 2px;
+  border-radius: var(--radio);
+}
+
+/* ── Coreografia de entrada ───────────────────────────────────────────────── */
+@keyframes surgir {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.surge {
+  animation: surgir var(--dur-bloque) var(--curva-entrada) both;
+  animation-delay: calc(var(--i, 0) * 60ms);
+}
+
+/* Escalonado por fila, con tope en 8: pasado ese punto la lista se siente lenta
+ * en vez de viva. El indice se pasa como custom property inline. */
+.surge-fila {
+  animation: surgir var(--dur-ui) var(--curva-entrada) both;
+  animation-delay: calc(var(--i, 0) * 30ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
