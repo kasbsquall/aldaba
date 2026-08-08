@@ -7,7 +7,11 @@ import { defineConfig, allow, block } from "@portalsdk/config";
 // recien desplegada. Despues de cada deploy hay que reconectar los clientes antes de
 // dar por buena una prueba.
 
-const ISSUER = process.env.ALDABA_ISSUER!.replace(/\/$/, "");
+// Este archivo se empaqueta y corre en el borde de Portal, no en tu maquina: aqui
+// `process.env` no tiene nada de tu .env.local. El issuer va como literal y se
+// mantiene sincronizado con ALDABA_ISSUER corriendo `npm run portal:deploy`, que
+// reescribe la linea de abajo antes de desplegar.
+const ISSUER = "https://sense-faq-terry-reg.trycloudflare.com"; // aldaba:issuer
 
 export default defineConfig({
   // Portal no documenta un flujo publico para acuñar sus propios tokens, pero si

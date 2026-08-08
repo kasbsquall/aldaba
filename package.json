@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "portal:deploy": "node scripts/deploy-portal.mjs",
+    "keys:rotate": "node scripts/generate-keys.mjs"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",
