@@ -30,14 +30,22 @@ function reloj(total: number): string {
 export function Contrafactual({ onTerminar }: { onTerminar: () => void }) {
   const [transcurrido, setTranscurrido] = useState(ARRANQUE_SEG);
   const [saliendo, setSaliendo] = useState(false);
+  // Se retira a si mismo. Antes solo avisaba al padre y esperaba a que lo
+  // desmontara, y si esa actualizacion no llegaba el overlay se quedaba a
+  // `opacity: 0` pero con `inset: 0` y `pointer-events: auto`: invisible y
+  // tragandose todos los clics de la pagina. El tablero se veia perfecto y no
+  // respondia a nada.
+  const [retirado, setRetirado] = useState(false);
   const cerrado = useRef(false);
 
   function cerrar() {
     if (cerrado.current) return;
     cerrado.current = true;
     setSaliendo(true);
-    // Deja terminar la transicion de salida antes de desmontar.
-    setTimeout(onTerminar, 220);
+    setTimeout(() => {
+      setRetirado(true);
+      onTerminar();
+    }, 220);
   }
 
   useEffect(() => {
@@ -54,7 +62,7 @@ export function Contrafactual({ onTerminar }: { onTerminar: () => void }) {
     const fin = setTimeout(cerrar, DURACION);
 
     function alTeclear(e: KeyboardEvent) {
-      if (e.key === "Escape" || e.key === "Enter" || e.key === " ") cerrar();
+      if (e.key === "Escape") cerrar();
     }
     window.addEventListener("keydown", alTeclear);
 
@@ -67,9 +75,12 @@ export function Contrafactual({ onTerminar }: { onTerminar: () => void }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  if (retirado) return null;
+
   return (
     <div
       role="dialog"
+      aria-modal="true"
       aria-label="Cómo funciona hoy la aprobación humana"
       style={{
         position: "fixed",
@@ -80,6 +91,9 @@ export function Contrafactual({ onTerminar }: { onTerminar: () => void }) {
         placeItems: "center",
         padding: "var(--hueco-8)",
         opacity: saliendo ? 0 : 1,
+        // Cinturon y tirantes: en cuanto empieza a salir deja de recibir clics,
+        // asi que ni siquiera un fallo de desmontaje puede bloquear la pagina.
+        pointerEvents: saliendo ? "none" : "auto",
         transition: "opacity 220ms var(--curva-entrada)",
       }}
     >
