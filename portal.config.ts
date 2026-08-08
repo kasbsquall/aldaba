@@ -11,7 +11,7 @@ import { defineConfig, allow, block } from "@portalsdk/config";
 // `process.env` no tiene nada de tu .env.local. El issuer va como literal y se
 // mantiene sincronizado con ALDABA_ISSUER corriendo `npm run portal:deploy`, que
 // reescribe la linea de abajo antes de desplegar.
-const ISSUER = "https://sense-faq-terry-reg.trycloudflare.com"; // aldaba:issuer
+const ISSUER = "https://aldaba.107-172-6-206.sslip.io"; // aldaba:issuer
 
 export default defineConfig({
   // Portal no documenta un flujo publico para acuñar sus propios tokens, pero si
