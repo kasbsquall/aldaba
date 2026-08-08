@@ -53,20 +53,26 @@ export default defineConfig({
       notify: (ctx) => {
         if (ctx.message.type !== "aldaba.knock") return null;
 
-        const to = ctx.message.to;
-        if (!to) return null;
-
         const k = ctx.message.content as {
           caseId: string;
           resumen: string;
           intento: number;
           deadline: string;
+          to: string;
         };
+        if (!k.to) return null;
 
+        // El destinatario se lee del contenido, no del `to` del envelope, y eso es
+        // deliberado. Un mensaje con `to` en el envelope solo se entrega a esa
+        // persona, asi que el tablero se quedaria sin ver los toques dirigidos a los
+        // demas y la cadena de escalamiento seria invisible justo para quien mira.
+        //
+        // El toque viaja publico para que todo el canal lo vea, y el descriptor
+        // dirige la notificacion a una sola persona con su propio `to`.
         return {
           title: `Aprobación requerida: ${k.resumen}`,
           data: { caseId: k.caseId, intento: k.intento, deadline: k.deadline },
-          to: [to],
+          to: [k.to],
         };
       },
     },
