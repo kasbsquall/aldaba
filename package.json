@@ -11,6 +11,8 @@
     "keys:rotate": "node scripts/generate-keys.mjs"
   },
   "dependencies": {
+    "@dicebear/collection": "^9.4.2",
+    "@dicebear/core": "^9.4.3",
     "@fontsource-variable/bricolage-grotesque": "^5.3.0",
     "@fontsource-variable/martian-mono": "^5.3.0",
     "@phosphor-icons/react": "^2.1.10",

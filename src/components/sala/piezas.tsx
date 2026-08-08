@@ -23,6 +23,7 @@ import {
   SelloDeActa,
 } from "./identidad";
 import { SelloAgente } from "./sellos";
+import { Retrato } from "./retrato";
 
 // Un solo grosor de icono en todo el producto, y un solo tamano base.
 const ICONO = { weight: "light" as const, size: 15 };
@@ -165,13 +166,13 @@ export function Roster({
               display: "flex",
               alignItems: "center",
               gap: "var(--hueco-2)",
-              padding: "var(--hueco-2) 0",
+              padding: "var(--hueco-3) 0",
               borderBottom: "1px solid var(--linea)",
               color: a.conectado ? "var(--tinta)" : "var(--tinta-tenue)",
             } as React.CSSProperties
           }
         >
-          <MarcaPersona nombre={a.nombre} tam={24} atenuada={!a.conectado} />
+          <Retrato nombre={a.nombre} tam={30} atenuado={!a.conectado} />
           <span style={{ fontSize: "var(--paso-0)", fontWeight: a.id === miId ? 600 : 400 }}>
             {a.nombre}
           </span>
@@ -634,6 +635,7 @@ function Cadena({ carril, nombreDe }: { carril: CarrilVista; nombreDe: (id: stri
             }
           >
             <span className="dato">{i + 1}</span>
+            <Retrato nombre={nombreDe(p.aprobador)} tam={18} atenuado={p.vencio} />
             <span>{nombreDe(p.aprobador)}</span>
             <span style={{ opacity: 0.75 }}>
               {p.vencio ? "no abrió" : p.estabaConectado ? "conectado" : "ausente"}
