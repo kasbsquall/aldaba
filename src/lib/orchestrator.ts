@@ -127,6 +127,35 @@ export class Sesion {
     for (const spec of AGENTES) {
       void this.razonarHastaBloquear(spec);
     }
+
+    this.vigilar();
+  }
+
+  /**
+   * Vigila que la sala no se quede congelada.
+   *
+   * Un carril bloqueado sin plazo y sin nadie a quien tocar se queda ahi para
+   * siempre, y el visitante que llega despues encuentra un tablero muerto sin forma
+   * de saber que existe un boton de reinicio. Cada 20 segundos, cualquier carril
+   * atascado se relanza.
+   */
+  private vigilar(): void {
+    const reloj = setInterval(() => {
+      if (!this.viva) return clearInterval(reloj);
+      const ahora = Date.now();
+
+      for (const c of this.carriles.values()) {
+        const vencido = c.deadline != null && c.deadline < ahora - 4000;
+        const varado =
+          (c.estado === "bloqueado" || c.estado === "tocando") &&
+          (c.deadline == null || vencido) &&
+          c.bloqueadoEn != null &&
+          ahora - c.bloqueadoEn > 45_000;
+
+        if (varado) void this.tocarSiguiente(c.spec.id);
+      }
+    }, 20_000);
+    this.temporizadores.push(reloj as unknown as ReturnType<typeof setTimeout>);
   }
 
   /**

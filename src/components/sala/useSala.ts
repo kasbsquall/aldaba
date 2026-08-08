@@ -34,17 +34,20 @@ export function useSala(sesionId: string | null, miId: string | null): Sala {
 
   // `channelId: undefined` deja el hook inerte y sin abrir conexion, que es lo
   // correcto mientras el id de sala todavia no existe.
+  const [ocupado, setOcupado] = useState(false);
+
   const { messages, status, setMetadata, presence } = useChannel({
     channelId: sesionId ? canalDeCaso(sesionId) : undefined,
+    metadata: { estado: ocupado ? "ocupado" : "libre" },
   });
 
-  // Lo que esta persona declara sobre si misma. Viaja como metadata de presencia,
-  // que el orquestador lee server-side para decidir a quien tocarle la puerta.
-  //
-  // Es la pieza que convierte la tesis en algo que el usuario HACE. Sin esto,
-  // "estar presente no es estar disponible" es una frase del README; con esto, se
-  // declara con un clic y el enrutamiento cambia delante de los demas.
-  const [ocupado, setOcupado] = useState(false);
+  // Refuerzo imperativo: la opcion del hook cubre la conexion y la reconexion, y
+  // esta llamada empuja el cambio en el acto sin esperar a un ciclo de render.
+  useEffect(() => {
+    if (!sesionId) return;
+    setMetadata({ estado: ocupado ? "ocupado" : "libre" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ocupado, sesionId]);
 
   // El escenario arranca solo al abrir la URL. Nunca hay un estado inicial vacio
   // esperando a que el visitante haga algo.
@@ -136,7 +139,6 @@ export function useSala(sesionId: string | null, miId: string | null): Sala {
 
   function declararOcupado(v: boolean) {
     setOcupado(v);
-    setMetadata({ estado: v ? "ocupado" : "libre" });
   }
 
   return {

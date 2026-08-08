@@ -103,7 +103,7 @@ export async function trazaEnVivo(spec: AgenteSpec): Promise<PasoRazonamiento[] 
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key) return null;
 
-  const monto = `${spec.monto.moneda} ${spec.monto.valor}`;
+  const monto = `${spec.monto.moneda === "USD" ? "US$" : "S/"} ${spec.monto.valor.toLocaleString("es-PE")}`;
   const prompt = `Operación: ${spec.operacion}. Monto: ${monto}. Contraparte: ${spec.contraparte}.
 Regla que la detiene: ${spec.regla}.
 Devuelve entre 5 y 7 pasos de tu razonamiento, uno por línea, sin numerar.`;
