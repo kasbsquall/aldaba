@@ -374,7 +374,7 @@ export function FilaCarril({
             style={{
               width: 14,
               height: 1,
-              background: "color-mix(in oklch, var(--hueso-900) 40%, transparent)",
+              background: "var(--linea-fuerte)",
             }}
           />
         ) : null}

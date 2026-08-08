@@ -142,7 +142,7 @@ export function PlanoDePuertas({
               r="4.6"
               stroke={
                 !tocada
-                  ? "color-mix(in oklch, var(--hueso-900) 25%, transparent)"
+                  ? "var(--linea-fuerte)"
                   : vencida
                     ? "var(--tinta-tenue)"
                     : "var(--tinta)"
@@ -175,7 +175,7 @@ export function Filigrana({ tam = 340 }: { tam?: number }) {
         right: -Math.round(tam * 0.26),
         top: "50%",
         transform: "translateY(-50%)",
-        color: "color-mix(in oklch, var(--hueso-900) 5%, transparent)",
+        color: "var(--linea)",
         pointerEvents: "none",
         zIndex: 0,
       }}

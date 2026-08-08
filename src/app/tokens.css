@@ -360,7 +360,9 @@ p {
 .franja {
   border-top: 1px solid var(--linea);
   border-bottom: 1px solid var(--linea);
-  padding: var(--hueco-3) 0;
+  /* Mas aire abajo que arriba: el nombre de la operacion es la ultima linea y
+     quedaba pegado al filete inferior. */
+  padding: var(--hueco-4) 0 var(--hueco-6);
 }
 .franja-rejilla {
   display: grid;

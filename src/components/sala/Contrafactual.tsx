@@ -157,7 +157,7 @@ export function Contrafactual({ onTerminar }: { onTerminar: () => void }) {
             ["--i" as string]: 2,
             border: "1px solid var(--linea-fuerte)",
             borderRadius: "var(--radio)",
-            background: "var(--hueso-200)",
+            background: "var(--fondo-hundido)",
             padding: "var(--hueco-6) var(--hueco-8)",
             maxWidth: "52rem",
           }}
