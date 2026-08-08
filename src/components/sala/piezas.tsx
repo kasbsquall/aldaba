@@ -22,6 +22,7 @@ import {
   PlanoDePuertas,
   SelloDeActa,
 } from "./identidad";
+import { SelloAgente } from "./sellos";
 
 // Un solo grosor de icono en todo el producto, y un solo tamano base.
 const ICONO = { weight: "light" as const, size: 15 };
@@ -309,10 +310,9 @@ export function FilaCarril({
         } as React.CSSProperties
       }
     >
-      <MarcaAgente
+      <SelloAgente
         id={carril.id}
-        nombre={carril.nombre}
-        tam={24}
+        tam={26}
         alta={!cerrado && carril.estado === "esperando"}
       />
 
@@ -432,12 +432,7 @@ export function CarrilProtagonista({
         }}
       >
         <div style={{ display: "flex", gap: "var(--hueco-3)", alignItems: "flex-start" }}>
-          <MarcaAgente
-            id={carril.id}
-            nombre={carril.nombre}
-            tam={44}
-            alta={carril.estado === "esperando"}
-          />
+          <SelloAgente id={carril.id} tam={48} alta={carril.estado === "esperando"} />
           <div>
             <div
               style={{
