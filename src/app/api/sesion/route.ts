@@ -13,8 +13,20 @@ export async function POST(request: Request) {
 
   try {
     if (reset) reiniciar(sesionId);
-    await sesionDe(sesionId);
-    return Response.json({ ok: true, sesionId, canal: canalDeCaso(sesionId) });
+    const sesion = await sesionDe(sesionId);
+
+    // Devuelve la foto del tablero, no solo un acuse.
+    //
+    // En este entorno Portal entrega en vivo pero no persiste: el historial de un
+    // canal vuelve siempre vacio, comprobado tambien en canales sin configuracion.
+    // Sin esta foto, quien abre la URL un segundo despues de que arranque el
+    // escenario se queda con la pantalla vacia y no hay nada que recuperar.
+    return Response.json({
+      ok: true,
+      sesionId,
+      canal: canalDeCaso(sesionId),
+      tablero: sesion.instantanea(),
+    });
   } catch (error) {
     const motivo = error instanceof Error ? error.message : "error desconocido";
     return Response.json({ ok: false, error: "no_arranco", motivo }, { status: 500 });

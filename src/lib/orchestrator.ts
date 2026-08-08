@@ -35,6 +35,8 @@ interface Carril {
   deadline: number | null;
   /** Aprobadores ya tocados en este carril, para no repetir puerta. */
   tocados: Set<string>;
+  /** La cadena completa, en orden, para poder reconstruirla en la foto. */
+  cadena: { aprobador: string; estabaConectado: boolean; vencio: boolean }[];
   bloqueadoEn: number | null;
   temporizador: ReturnType<typeof setTimeout> | null;
 }
@@ -77,6 +79,7 @@ export class Sesion {
         aprobador: null,
         deadline: null,
         tocados: new Set(),
+        cadena: [],
         bloqueadoEn: null,
         temporizador: null,
       });
@@ -239,6 +242,11 @@ export class Sesion {
     carril.intento += 1;
     carril.aprobador = elegido.id;
     carril.tocados.add(elegido.id);
+    carril.cadena.push({
+      aprobador: elegido.id,
+      estabaConectado: enLinea.has(elegido.id),
+      vencio: false,
+    });
     carril.deadline = Date.now() + carril.spec.plazo * 1000;
     this.ocupados.set(elegido.id, agenteId);
 
@@ -277,6 +285,9 @@ export class Sesion {
     if (carril.estado !== "tocando" || carril.intento !== intento) return;
 
     const aprobador = carril.aprobador!;
+    const ultima = carril.cadena.at(-1);
+    if (ultima) ultima.vencio = true;
+
     await this.publicar({
       type: "aldaba.timeout",
       content: {
@@ -382,6 +393,63 @@ export class Sesion {
     });
 
     return { ok: true };
+  }
+
+  /**
+   * Foto del tablero tal como esta ahora.
+   *
+   * Existe porque en este entorno Portal entrega en vivo pero no persiste: el
+   * historial de un canal vuelve siempre vacio, comprobado tambien en un canal sin
+   * configuracion alguna. Un cliente que se conecta un segundo despues de que el
+   * agente empiece a trabajar se queda sin nada y no hay forma de recuperarlo desde
+   * el canal.
+   *
+   * Asi que el estado vive aqui, que es donde ya vivia, y se entrega al arrancar.
+   * El canal sigue siendo el transporte en vivo; deja de ser la fuente de verdad.
+   */
+  instantanea() {
+    return {
+      arrancado: true,
+      aprobadores: APROBADORES.map((a) => ({
+        id: a.id,
+        nombre: a.nombre,
+        rol: a.rol,
+        sembrado: a.kind === "sembrado",
+        conectado: this.sala.presencia().conectados.includes(a.id),
+        atendiendo: this.ocupados.get(a.id) ?? null,
+      })),
+      carriles: [...this.carriles.values()].map((c) => ({
+        id: c.spec.id,
+        nombre: c.spec.nombre,
+        operacion: c.spec.operacion,
+        estado:
+          c.estado === "trabajando"
+            ? ("trabajando" as const)
+            : c.estado === "aprobado" || c.estado === "rechazado" || c.estado === "retenido"
+              ? (c.estado as "aprobado" | "rechazado" | "retenido")
+              : ("esperando" as const),
+        razonamiento: [] as string[],
+        herramienta: null,
+        umbral:
+          c.bloqueadoEn == null
+            ? null
+            : {
+                caseId: this.sesionId,
+                agente: c.spec.id,
+                regla: c.spec.regla,
+                monto: c.spec.monto,
+                contraparte: c.spec.contraparte,
+                resumenRazonamiento: resumenDe(c.spec),
+              },
+        tocandoA: c.aprobador,
+        intento: c.intento,
+        deadline: c.deadline,
+        cadena: c.cadena.map((p) => ({ ...p })),
+        veredicto: null,
+        cierre: null,
+        cedio: null,
+      })),
+    };
   }
 
   private liberar(agenteId: string) {

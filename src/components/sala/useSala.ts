@@ -23,6 +23,10 @@ export interface Sala {
 
 export function useSala(sesionId: string | null, miId: string | null): Sala {
   const [arrancando, setArrancando] = useState(true);
+  // La foto del tablero que devuelve el servidor al arrancar. El canal entrega en
+  // vivo pero no persiste nada, asi que sin esta base quien llega tarde se queda
+  // con una pantalla vacia para siempre.
+  const [base, setBase] = useState<Tablero>(tableroVacio);
   const pedido = useRef(false);
 
   // `channelId: undefined` deja el hook inerte y sin abrir conexion, que es lo
@@ -41,13 +45,18 @@ export function useSala(sesionId: string | null, miId: string | null): Sala {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ sesionId }),
     })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (d?.tablero) setBase(d.tablero as Tablero);
+      })
       .catch(() => {})
       .finally(() => setArrancando(false));
   }, [sesionId]);
 
+  // Los mensajes en vivo se aplican encima de la foto, no desde cero.
   const tablero = useMemo(
-    () => (messages ?? []).reduce<Tablero>((t, m) => reducir(t, m), tableroVacio),
-    [messages]
+    () => (messages ?? []).reduce<Tablero>((t, m) => reducir(t, m), base),
+    [messages, base]
   );
 
   const miCarril = useMemo(() => {

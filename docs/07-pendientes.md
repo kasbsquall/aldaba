@@ -1,31 +1,46 @@
 # Pendientes
 
-## Resuelto · El tablero no se poblaba
+## Resuelto · el tablero no se poblaba
 
-Era un **desajuste de hidratacion**, y tardo en aparecer porque no se manifestaba
-como un error visible sino como una pagina muerta.
+La causa era una premisa falsa del diseno, no un bug de codigo.
 
-`usarContrafactual` leia `sessionStorage` durante el render para decidir si mostrarse.
-En el servidor no hay `sessionStorage`, asi que el servidor pintaba una cosa y el
-cliente otra. React detecta la diferencia, descarta el arbol y lo regenera, y en ese
-descarte se pierden los efectos del componente de pagina. De ahi el sintoma raro que
-costo diagnosticar: los efectos del hijo (`Proveedor`) corrian y los del padre no, asi
-que `/api/portal-token` se llamaba y `/api/sesion` nunca.
+**En este entorno Portal entrega en vivo pero no persiste.** El historial de un canal
+vuelve siempre vacio y todo envio resuelve con `seq: undefined`. Comprobado con tipos
+con punto, con guion bajo y sin prefijo, y tambien en un canal sin configuracion
+alguna, asi que no es el `authz`, ni el `notify`, ni el prefijo de namespace.
 
-La correccion tiene dos partes. El contrafactual arranca visible siempre, tambien en
-el servidor, y se cierra despues en un efecto si esa sala ya lo vio: asi servidor y
-cliente pintan lo mismo en el primer render. Y el id de sala se calcula con un
-inicializador perezoso en vez de un efecto, que ademas lo hace inmune a este fallo.
+Por eso el cliente de Node veia todo (esta conectado en vivo desde antes) y el
+navegador no veia nada: llega un segundo tarde, pide el historial, recibe cero, y ya
+no hay forma de recuperar lo que se perdio.
 
-Leccion para el resto del proyecto: leer `sessionStorage`, `localStorage` o
-`window` durante el render de un componente que el servidor tambien pinta rompe la
-hidratacion, y el sintoma puede aparecer muy lejos de la causa.
+La correccion es dejar de usar el canal como fuente de verdad. El orquestador ya
+tenia el estado en memoria; ahora lo devuelve como foto en la misma respuesta de
+`POST /api/sesion`, y el cliente aplica los mensajes en vivo encima de esa base. El
+canal sigue siendo el transporte; deja de ser el almacen.
 
-## Abiertos
+Verificado en produccion con sala nueva: tablero poblado, contador en 2 disponibles
+frente a 5 esperando, el clic llega al boton, el veredicto se registra, el contador
+baja a 4 y el siguiente carril sube al bloque protagonista.
 
-- El aside deja un vacio grande abajo a la derecha. Se lee como inacabado.
-- Sin probar en movil ni en 768px.
-- El item de inbox llega sin titulo, lo que sugiere que se recibe el item del envio
-  dirigido y no el descriptor del puente `notify`.
-- Falta el despliegue con URL estable, las tres auditorias por subagente, el video,
-  el README y el pitch de 200 caracteres.
+## Abiertos, por prioridad
+
+### Obligatorios del reglamento
+- Video de 90 segundos. Grabarlo el sabado de noche, nunca el domingo.
+- README con la explicacion de como se uso Portal.
+- Pitch de 200 caracteres.
+- Enviar el formulario. Empezar a las 9:00 como muy tarde.
+
+### Alto
+- A 375px la columna protagonista mide 0px y hay scroll horizontal.
+- Textos que mienten: `ap_visitante` crudo en pantalla, "firmada por Tu", y el
+  razonamiento afirmando que "312 clientes afectados no tiene historial previo".
+- El contador dice "disponibles" pero cuenta conectados, y la tesis del producto es
+  justamente que estar presente no es estar disponible.
+
+### Medio
+- El rojo significa tres cosas: escasez, puerta actual y plazo.
+- Botones con dos estados de seis. Sin hover, sin disabled, sin loading.
+- Doble envio posible en Firmar.
+- Bricolage importada sin su eje de optical size, que era la razon de elegirla.
+- Dos rechazos sueltos de `message rejected by moderation` en el log, sin patron
+  claro. No bloquean, pero conviene saber que existen.
