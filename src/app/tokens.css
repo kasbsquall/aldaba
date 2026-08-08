@@ -373,7 +373,7 @@ p {
   grid-template-columns: auto 1fr;
   align-items: center;
   gap: var(--hueco-8);
-  padding: var(--hueco-5) var(--hueco-6);
+  padding: var(--hueco-4) var(--hueco-6);
   background: var(--tinta);
   color: var(--fondo-elevado);
   border-radius: var(--radio);
@@ -418,6 +418,6 @@ p {
  * rotulo de debajo se comia el borde inferior de la losa. El padding se reparte
  * asimetrico: mas abajo que arriba, que es donde el texto realmente llega. */
 .losa {
-  padding: var(--hueco-5) var(--hueco-6) var(--hueco-6);
+  padding: var(--hueco-4) var(--hueco-6) var(--hueco-6);
   align-items: center;
 }

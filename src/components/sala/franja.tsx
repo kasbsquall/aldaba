@@ -136,7 +136,7 @@ export function FranjaPlazos({
     <section
       className="franja surge"
       aria-label="Plazo restante de cada operación"
-      style={{ marginTop: "var(--hueco-5)" }}
+      style={{ marginTop: "var(--hueco-4)" }}
     >
       <div
         style={{
