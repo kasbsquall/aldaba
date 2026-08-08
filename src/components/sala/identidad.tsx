@@ -14,11 +14,11 @@ import { AldabaMarca } from "@/components/marca/Aldaba";
  * identicos en columna, que la direccion lista como prohibido. */
 
 const MONOGRAMA: Record<string, string> = {
-  ag_transfer: "PA",
-  ag_refund: "RE",
-  ag_limit: "LI",
-  ag_fx: "FX",
-  ag_payroll: "PL",
+  ag_transfer: "KU",
+  ag_refund: "YA",
+  ag_limit: "RU",
+  ag_fx: "WA",
+  ag_payroll: "AY",
 };
 
 /** Dos letras que se distingan entre si a distancia, no las dos primeras del nombre. */

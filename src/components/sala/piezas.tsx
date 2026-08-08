@@ -441,13 +441,30 @@ export function CarrilProtagonista({
           <div>
             <div
               style={{
-                fontSize: "var(--paso--1)",
-                letterSpacing: "0.14em",
-                textTransform: "uppercase",
-                color: "var(--tinta-tenue)",
+                display: "flex",
+                alignItems: "baseline",
+                gap: "var(--hueco-2)",
               }}
             >
-              {carril.nombre}
+              <span
+                style={{
+                  fontSize: "var(--paso-1)",
+                  fontWeight: 600,
+                  letterSpacing: "-0.01em",
+                }}
+              >
+                {carril.nombre}
+              </span>
+              <span
+                style={{
+                  fontSize: "var(--paso--1)",
+                  letterSpacing: "0.12em",
+                  textTransform: "uppercase",
+                  color: "var(--tinta-tenue)",
+                }}
+              >
+                {carril.oficio ?? ""}
+              </span>
             </div>
             <h2 style={{ fontSize: "var(--paso-3)", marginTop: "var(--hueco-1)" }}>
               {carril.operacion}

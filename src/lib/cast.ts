@@ -69,7 +69,20 @@ export type Severidad = "alta" | "media";
 
 export interface AgenteSpec {
   id: string;
+  /**
+   * Nombre propio, no una etiqueta funcional.
+   *
+   * "Agente de pagos" describe un puesto y no se recuerda. Un nombre se recuerda, y
+   * en una pantalla donde cinco agentes compiten por la misma persona hace falta
+   * poder decir "Kuntur lleva veinte segundos esperando" en vez de "el de pagos".
+   *
+   * Vienen del quechua y cada uno dice algo de lo que el agente hace. Es una
+   * decision de marca deliberada para un producto de tesoreria peruana: nombrarlos
+   * Alpha, Beta y Gamma habria sido el default de cualquiera.
+   */
   nombre: string;
+  /** Lo que hace, en una linea. Va debajo del nombre. */
+  oficio: string;
   /** Que operacion evalua. Aparece en la fila comprimida. */
   operacion: string;
   monto: { valor: number; moneda: string };
@@ -94,6 +107,16 @@ export interface AgenteSpec {
   resumen: string[];
 }
 
+/* Los nombres vienen del quechua y cada uno dice algo del oficio:
+ *
+ *   Kuntur  condor, el que vigila desde arriba lo que sale
+ *   Yaku    agua, lo que devuelve y fluye de vuelta
+ *   Rumi    piedra, el limite que no cede
+ *   Wayra   viento, lo que cambia de direccion
+ *   Ayni    reciprocidad, el trabajo que se devuelve entre iguales
+ *
+ * Nombrarlos Alpha, Beta y Gamma habria sido el default de cualquiera. */
+
 // Un solo carril corre un LLM real. Los otros cuatro publican trazas guionadas por
 // el mismo canal de Portal, con la misma forma de mensaje y el mismo transporte.
 // Para quien mira es identico; para la infraestructura cuesta cero y elimina el
@@ -102,7 +125,8 @@ export interface AgenteSpec {
 export const AGENTES: AgenteSpec[] = [
   {
     id: "ag_transfer",
-    nombre: "Agente de pagos",
+    nombre: "Kuntur",
+    oficio: "Pagos a proveedores",
     operacion: "Transferencia a proveedor nuevo",
     monto: { valor: 48_200, moneda: "PEN" },
     contraparte: "Andina Logística SAC",
@@ -120,7 +144,8 @@ export const AGENTES: AgenteSpec[] = [
   },
   {
     id: "ag_refund",
-    nombre: "Agente de reembolsos",
+    nombre: "Yaku",
+    oficio: "Devoluciones y reembolsos",
     operacion: "Reembolso masivo por incidencia",
     monto: { valor: 12_940, moneda: "PEN" },
     contraparte: "312 clientes afectados",
@@ -138,7 +163,8 @@ export const AGENTES: AgenteSpec[] = [
   },
   {
     id: "ag_limit",
-    nombre: "Agente de límites",
+    nombre: "Rumi",
+    oficio: "Líneas y límites de crédito",
     operacion: "Ampliación de línea de crédito",
     monto: { valor: 150_000, moneda: "PEN" },
     contraparte: "Comercial Huaraz EIRL",
@@ -156,7 +182,8 @@ export const AGENTES: AgenteSpec[] = [
   },
   {
     id: "ag_fx",
-    nombre: "Agente de cambio",
+    nombre: "Wayra",
+    oficio: "Posición cambiaria",
     operacion: "Cobertura cambiaria fuera de banda",
     monto: { valor: 86_500, moneda: "USD" },
     contraparte: "Mesa de dinero",
@@ -174,7 +201,8 @@ export const AGENTES: AgenteSpec[] = [
   },
   {
     id: "ag_payroll",
-    nombre: "Agente de planilla",
+    nombre: "Ayni",
+    oficio: "Planilla y beneficios",
     operacion: "Pago de planilla fuera de calendario",
     monto: { valor: 233_100, moneda: "PEN" },
     contraparte: "84 colaboradores",

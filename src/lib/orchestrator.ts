@@ -100,6 +100,7 @@ export class Sesion {
         agentes: AGENTES.map((a) => ({
           id: a.id,
           nombre: a.nombre,
+          oficio: a.oficio,
           operacion: a.operacion,
         })),
         aprobadores: SEMBRADOS.map((a) => ({
@@ -244,6 +245,7 @@ export class Sesion {
         agentes: [...this.carriles.values()].map((c) => ({
           id: c.spec.id,
           nombre: c.spec.nombre,
+          oficio: c.spec.oficio,
           operacion: c.spec.operacion,
         })),
         aprobadores: SEMBRADOS.map((a) => ({
@@ -614,6 +616,7 @@ export class Sesion {
       carriles: [...this.carriles.values()].map((c) => ({
         id: c.spec.id,
         nombre: c.spec.nombre,
+        oficio: c.spec.oficio,
         operacion: c.spec.operacion,
         estado:
           c.estado === "trabajando"

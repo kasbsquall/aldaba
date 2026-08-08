@@ -40,7 +40,7 @@ export type TipoMensaje =
 export interface Escenario {
   caseId: CaseId;
   iniciadoEn: string;
-  agentes: { id: AgenteId; nombre: string; operacion: string }[];
+  agentes: { id: AgenteId; nombre: string; oficio?: string; operacion: string }[];
   aprobadores: { id: AprobadorId; nombre: string; rol: string; sembrado: boolean }[];
 }
 

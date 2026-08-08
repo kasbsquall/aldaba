@@ -29,6 +29,7 @@ export type EstadoCarril =
 export interface CarrilVista {
   id: string;
   nombre: string;
+  oficio?: string;
   operacion: string;
   estado: EstadoCarril;
   razonamiento: string[];
@@ -134,6 +135,7 @@ export function reducir(previo: Tablero, m: MensajeEntrante): Tablero {
           return {
             id: a.id,
             nombre: a.nombre,
+            oficio: a.oficio,
             operacion: a.operacion,
             estado: "trabajando" as const,
             razonamiento: [],
