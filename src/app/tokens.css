@@ -343,3 +343,63 @@ p {
     animation: none;
   }
 }
+
+/* ── La franja de plazos y la losa de escasez ────────────────────────────────
+ *
+ * Cinco columnas iguales con `minmax(0, 1fr)`: el `0` es lo que impide que una
+ * celda con texto largo empuje a las demas y se salga del marco, que es el fallo
+ * que traia el mockup. La ultima pierde la divisoria para no dejar un trazo
+ * colgando contra el borde.
+ */
+.franja {
+  border-top: 1px solid var(--linea);
+  border-bottom: 1px solid var(--linea);
+  padding: var(--hueco-3) 0;
+}
+.franja-rejilla {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--hueco-4);
+}
+.franja-rejilla > :last-child {
+  border-right: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* La losa. El contador flotaba sin anclaje; en tinta llena gana masa y ademas
+ * empareja la cifra con la prosa que la explica, que antes vivian sueltas. */
+.losa {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: var(--hueco-8);
+  padding: var(--hueco-5) var(--hueco-6);
+  background: var(--tinta);
+  color: var(--fondo-elevado);
+  border-radius: var(--radio);
+}
+.losa .prosa-losa {
+  max-width: 46ch;
+  margin: 0;
+  font-size: var(--paso-1);
+  color: var(--acento-claro, #E9835F);
+  text-wrap: pretty;
+}
+
+@media (max-width: 900px) {
+  .franja-rejilla {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--hueco-3);
+  }
+  /* En dos columnas la divisoria de la derecha cae en mitad de la fila, asi que
+   * se quita en todas y la separacion la hace el hueco. */
+  .franja-rejilla > * {
+    border-right: 0 !important;
+    padding-right: 0 !important;
+  }
+  .losa {
+    grid-template-columns: 1fr;
+    gap: var(--hueco-4);
+    padding: var(--hueco-4);
+  }
+}

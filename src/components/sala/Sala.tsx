@@ -9,6 +9,7 @@ import { useSala } from "@/components/sala/useSala";
 import { Contrafactual, usarContrafactual } from "@/components/sala/Contrafactual";
 import { AvisoDeToque } from "@/components/sala/aviso";
 import { useReordenar } from "@/components/sala/reordenar";
+import { FranjaPlazos } from "@/components/sala/franja";
 import {
   Arbitraje,
   CarrilProtagonista,
@@ -146,20 +147,18 @@ function Tablero({ sesion, identidad }: { sesion: string | null; identidad: Iden
       <main className="sala">
         <div className="columna-principal">
           <div className="apertura">
-            <ContadorEscasez tablero={tablero} />
+            {/* La cifra y la prosa que la explica viven dentro de la misma losa. Antes
+                eran dos bloques sueltos y el contador flotaba sin nada que lo anclara. */}
+            <section className="losa surge">
+              <ContadorEscasez tablero={tablero} sobreTinta />
+              <p className="prosa-losa">
+                Cinco agentes necesitan una firma humana para seguir. En vez de esperar,
+                cada uno busca quién está libre en este momento y le toca la puerta. Si
+                nadie abre dentro del plazo, escala solo a la siguiente persona.
+              </p>
+            </section>
 
-            <p
-            style={{
-              maxWidth: "54ch",
-              fontSize: "var(--paso-1)",
-              color: "var(--tinta-media)",
-              margin: 0,
-            }}
-          >
-            Cinco agentes necesitan una firma humana para seguir. En vez de esperar,
-            cada uno busca quién está libre en este momento y le toca la puerta. Si
-              nadie abre dentro del plazo, escala solo a la siguiente persona.
-            </p>
+            <FranjaPlazos tablero={tablero} protagonistaId={protagonista?.id ?? null} />
           </div>
 
           <div className="tablero">

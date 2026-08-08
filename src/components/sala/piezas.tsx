@@ -36,7 +36,13 @@ function moneda(m: { valor: number; moneda: string }) {
 /* ── El contador de escasez ──────────────────────────────────────────────────
  * El protagonista. Es lo unico que hay que entender en los primeros diez
  * segundos, y el unico bloque que ningun otro proyecto va a tener en pantalla. */
-export function ContadorEscasez({ tablero }: { tablero: Tablero }) {
+export function ContadorEscasez({
+  tablero,
+  sobreTinta = false,
+}: {
+  tablero: Tablero;
+  sobreTinta?: boolean;
+}) {
   // Disponible es conectado Y libre. Contar solo conectados seria contradecir la
   // tesis del producto en el numero mas grande de la pantalla: alguien que ya esta
   // atendiendo otra operacion esta presente, no disponible.
@@ -56,18 +62,23 @@ export function ContadorEscasez({ tablero }: { tablero: Tablero }) {
       className="surge"
       style={{ display: "flex", alignItems: "baseline", gap: "var(--hueco-8)" }}
     >
-      <Cifra valor={libres} etiqueta="libres ahora mismo" />
+      <Cifra valor={libres} etiqueta="libres ahora mismo" sobreTinta={sobreTinta} />
       <span
         aria-hidden
         style={{
           fontSize: "var(--paso-4)",
-          color: "var(--tinta-tenue)",
+          color: sobreTinta ? "rgba(242,237,228,0.35)" : "var(--tinta-tenue)",
           transform: "translateY(-0.35em)",
         }}
       >
         /
       </span>
-      <Cifra valor={esperan} etiqueta="esperan una firma" urgente={tenso} />
+      <Cifra
+        valor={esperan}
+        etiqueta="esperan una firma"
+        urgente={tenso}
+        sobreTinta={sobreTinta}
+      />
     </section>
   );
 }
@@ -108,10 +119,13 @@ function Cifra({
   valor,
   etiqueta,
   urgente = false,
+  sobreTinta = false,
 }: {
   valor: number;
   etiqueta: string;
   urgente?: boolean;
+  /** Sobre la losa oscura el par tinta/gris se invierte o la cifra desaparece. */
+  sobreTinta?: boolean;
 }) {
   return (
     <div>
@@ -122,7 +136,11 @@ function Cifra({
           lineHeight: 0.86,
           fontWeight: 600,
           letterSpacing: "-0.035em",
-          color: urgente ? "var(--urgente)" : "var(--tinta)",
+          color: urgente
+            ? "var(--urgente)"
+            : sobreTinta
+              ? "var(--fondo-elevado)"
+              : "var(--tinta)",
           transition: "color var(--dur-ui) var(--curva-entrada)",
         }}
       >
@@ -133,7 +151,7 @@ function Cifra({
           fontSize: "var(--escasez-etiqueta)",
           letterSpacing: "0.14em",
           textTransform: "uppercase",
-          color: "var(--tinta-tenue)",
+          color: sobreTinta ? "rgba(242,237,228,0.55)" : "var(--tinta-tenue)",
           marginTop: "var(--hueco-2)",
         }}
       >
