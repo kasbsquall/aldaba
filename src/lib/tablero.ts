@@ -106,30 +106,44 @@ export function reducir(previo: Tablero, m: MensajeEntrante): Tablero {
   switch (tipo) {
     case "aldaba.escenario": {
       const c = m.content as Escenario;
+
+      // El escenario se republica cada vez que un carril es relevado por una
+      // operacion nueva. Si esto reiniciara el tablero entero, un relevo borraria el
+      // estado de los otros cuatro carriles, que estan a media negociacion.
+      //
+      // Se fusiona: cada carril conserva lo suyo salvo que su operacion haya
+      // cambiado, y en ese caso arranca limpio porque de verdad es otro caso.
+      const previos = new Map(previo.carriles.map((x) => [x.id, x]));
+
       return {
         ...previo,
         arrancado: true,
-        carriles: c.agentes.map((a) => ({
-          id: a.id,
-          nombre: a.nombre,
-          operacion: a.operacion,
-          estado: "trabajando",
-          razonamiento: [],
-          herramienta: null,
-          umbral: null,
-          tocandoA: null,
-          intento: 0,
-          deadline: null,
-          cadena: [],
-          veredicto: null,
-          cierre: null,
-          cedio: null,
-        })),
-        aprobadores: c.aprobadores.map((a) => ({
-          ...a,
-          conectado: false,
-          atendiendo: null,
-        })),
+        carriles: c.agentes.map((a) => {
+          const anterior = previos.get(a.id);
+          if (anterior && anterior.operacion === a.operacion) return anterior;
+          return {
+            id: a.id,
+            nombre: a.nombre,
+            operacion: a.operacion,
+            estado: "trabajando" as const,
+            razonamiento: [],
+            herramienta: null,
+            umbral: null,
+            tocandoA: null,
+            intento: 0,
+            deadline: null,
+            cadena: [],
+            veredicto: null,
+            cierre: null,
+            cedio: null,
+          };
+        }),
+        // Los aprobadores no se pisan: el roster vivo sale de la presencia del
+        // cliente, y este mensaje solo aporta los sembrados.
+        aprobadores:
+          previo.aprobadores.length > 0
+            ? previo.aprobadores
+            : c.aprobadores.map((a) => ({ ...a, conectado: false, atendiendo: null })),
       };
     }
 

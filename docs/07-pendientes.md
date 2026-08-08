@@ -22,6 +22,29 @@ Verificado en produccion con sala nueva: tablero poblado, contador en 2 disponib
 frente a 5 esperando, el clic llega al boton, el veredicto se registra, el contador
 baja a 4 y el siguiente carril sube al bloque protagonista.
 
+## Abierto · el relevo no se dispara
+
+El escenario continuo esta escrito y desplegado (`programarRelevo` y `relevar` estan
+en el bundle del servidor, verificado con grep), pero no llega a ejecutarse: tras
+firmar un carril y esperar 16 segundos, `ag_transfer` sigue en estado "aprobado" con
+su operacion original en vez de haber vuelto con otra.
+
+Sin esto la sala se muere para el segundo visitante, que es justo el caso que la sala
+compartida vino a resolver. Con el boton de reiniciar se sobrevive, pero hay que
+pulsarlo.
+
+Por donde seguir, en orden:
+
+1. Confirmar que `programarRelevo` se llama: un `console.error` al entrar, y mirar
+   `pm2 logs`. El parche se aplico buscando el bloque del `aldaba.done`, y conviene
+   verificar a ojo que quedo dentro de `resolver` y no en otro sitio.
+2. Si se llama pero `relevar` no corre, sospechar de `this.programar`, que empuja el
+   temporizador a un array que `detener()` limpia. Comprobar que nadie llama a
+   `detener` entre medias.
+3. Si `relevar` corre y falla, el `void this.relevar(...)` se traga el error. Igual
+   que paso con las publicaciones, hay que darle un `.catch` con rastro antes de
+   seguir buscando.
+
 ## Abiertos, por prioridad
 
 ### Obligatorios del reglamento

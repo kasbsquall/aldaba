@@ -53,6 +53,8 @@ export class Sesion {
   private dadosDeAlta = new Set<string>();
   /** Evita llamar al arbitro en cada toque durante el mismo episodio. */
   private arbitrando = false;
+  /** Cuantos relevos lleva la sala. Alimenta la variacion de las operaciones. */
+  private vueltas = 0;
   private temporizadores: ReturnType<typeof setTimeout>[] = [];
   private arrancadaEn = 0;
   private viva = false;
@@ -167,6 +169,64 @@ export class Sesion {
     });
 
     this.programar(() => void this.bloquear(spec.id), ventana);
+  }
+
+  /**
+   * Un carril que cierra vuelve a arrancar con una operacion nueva.
+   *
+   * Sin esto la sala se muere: el primero que abre la URL ve el escenario entero y
+   * cualquiera que llegue despues encuentra cinco lineas grises que dicen "no abrio"
+   * y nada que hacer. Con cuatro jurados abriendo el enlace cuando les da la gana, y
+   * una sola sala compartida, eso es la diferencia entre un producto vivo y una foto.
+   *
+   * El relevo no es el mismo caso otra vez: cambia el monto, la contraparte y el
+   * plazo, para que dos vueltas seguidas no se lean como un bucle.
+   */
+  private programarRelevo(agenteId: string): void {
+    if (!this.viva) return;
+    this.programar(() => void this.relevar(agenteId), PAUSA_RELEVO);
+  }
+
+  private async relevar(agenteId: string): Promise<void> {
+    const carril = this.carriles.get(agenteId);
+    if (!carril || !this.viva) return;
+
+    const spec = variar(carril.spec, ++this.vueltas);
+
+    this.carriles.set(agenteId, {
+      spec,
+      estado: "trabajando",
+      intento: 0,
+      aprobador: null,
+      deadline: null,
+      tocados: new Set(),
+      cadena: [],
+      bloqueadoEn: null,
+      temporizador: null,
+    });
+
+    // El tablero tiene que enterarse de que este carril es otra operacion, no la
+    // anterior revivida.
+    await this.publicar({
+      type: "aldaba.escenario",
+      content: {
+        caseId: this.sesionId,
+        iniciadoEn: new Date().toISOString(),
+        agentes: [...this.carriles.values()].map((c) => ({
+          id: c.spec.id,
+          nombre: c.spec.nombre,
+          operacion: c.spec.operacion,
+        })),
+        aprobadores: SEMBRADOS.map((a) => ({
+          id: a.id,
+          nombre: a.nombre,
+          rol: a.rol,
+          sembrado: true,
+        })),
+      },
+    });
+
+    void this.razonarHastaBloquear(spec);
   }
 
   /** Sembrados mas los humanos presentes, sin duplicados y con los vivos primero. */
@@ -424,6 +484,8 @@ export class Sesion {
       },
     });
 
+    this.programarRelevo(agenteId);
+
     await this.publicar({
       type: "aldaba.done",
       content: {
@@ -475,6 +537,8 @@ export class Sesion {
         por: aprobadorId,
       },
     });
+
+    this.programarRelevo(agenteId);
 
     await this.publicar({
       type: "aldaba.done",
@@ -592,6 +656,40 @@ function moneda(m: { valor: number; moneda: string }) {
   const simbolo = m.moneda === "USD" ? "US$" : "S/";
   return `${simbolo} ${m.valor.toLocaleString("es-PE")}`;
 }
+
+/** Lo que tarda un carril en volver con otra operacion. */
+const PAUSA_RELEVO = 9_000;
+
+/**
+ * Devuelve la misma clase de operacion con otros numeros.
+ *
+ * Repetir el caso identico se lee como un bucle en cuanto alguien mira dos vueltas
+ * seguidas. Cambiar monto, contraparte y plazo cuesta nada y hace que la sala se
+ * sienta un flujo de trabajo en vez de una animacion.
+ */
+function variar(spec: AgenteSpec, vuelta: number): AgenteSpec {
+  const factor = 0.6 + ((vuelta * 37) % 90) / 100;
+  const valor = Math.round((spec.monto.valor * factor) / 100) * 100;
+  const contraparte = OTRAS_CONTRAPARTES[spec.id]?.[vuelta % 3] ?? spec.contraparte;
+
+  return {
+    ...spec,
+    monto: { ...spec.monto, valor },
+    contraparte,
+    // El plazo tambien se mueve, para que los cinco relojes no caigan en fase.
+    plazo: spec.plazo + ((vuelta * 5) % 9) - 4,
+    bloqueaEn: 4 + ((vuelta * 3) % 7),
+    resumen: spec.resumen,
+  };
+}
+
+const OTRAS_CONTRAPARTES: Record<string, string[]> = {
+  ag_transfer: ["Servicios Kañaris SAC", "Import Yarinacocha EIRL", "Textil Chincha SAC"],
+  ag_refund: ["148 clientes afectados", "1 204 clientes afectados", "77 clientes afectados"],
+  ag_limit: ["Distribuidora Tarma SRL", "Agro Motupe SAC", "Ferretería Junín EIRL"],
+  ag_fx: ["Mesa de dinero", "Cobertura de importaciones", "Posición de tesorería"],
+  ag_payroll: ["112 colaboradores", "58 colaboradores", "203 colaboradores"],
+};
 
 function nombreDe(id: string): string {
   return SEMBRADOS.find((a) => a.id === id)?.nombre ?? id;
