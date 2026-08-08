@@ -8,6 +8,7 @@ import { SALA } from "@/lib/cast";
 import { useSala } from "@/components/sala/useSala";
 import { Contrafactual, usarContrafactual } from "@/components/sala/Contrafactual";
 import { AvisoDeToque } from "@/components/sala/aviso";
+import { useReordenar } from "@/components/sala/reordenar";
 import {
   Arbitraje,
   CarrilProtagonista,
@@ -88,7 +89,19 @@ function Tablero({ sesion, identidad }: { sesion: string | null; identidad: Iden
     return esperando[0] ?? tablero.carriles[0] ?? null;
   }, [tablero.carriles, miCarril]);
 
-  const secundarios = tablero.carriles.filter((c) => c.id !== protagonista?.id);
+  const secundarios = useMemo(() => {
+    const rango = (c: (typeof tablero.carriles)[number]) => {
+      if (c.estado === "esperando" && c.deadline != null) return 0;
+      if (c.estado === "esperando") return 1;
+      if (c.estado === "trabajando") return 2;
+      return 3;
+    };
+    return tablero.carriles
+      .filter((c) => c.id !== protagonista?.id)
+      .sort((a, b) => rango(a) - rango(b) || (a.deadline ?? Infinity) - (b.deadline ?? Infinity));
+  }, [tablero.carriles, protagonista?.id]);
+
+  const listaOperaciones = useReordenar<HTMLUListElement>();
 
   return (
     <div className="pagina">
@@ -175,7 +188,10 @@ function Tablero({ sesion, identidad }: { sesion: string | null; identidad: Iden
 
           <section>
             <Etiqueta>Otras operaciones</Etiqueta>
-            <ul style={{ listStyle: "none", padding: 0, margin: "var(--hueco-2) 0 0" }}>
+            <ul
+              ref={listaOperaciones}
+              style={{ listStyle: "none", padding: 0, margin: "var(--hueco-2) 0 0" }}
+            >
               {secundarios.map((c, i) => (
                 <FilaCarril key={c.id} carril={c} indice={i} nombreDe={nombreDe} />
               ))}
