@@ -36,7 +36,7 @@ export function Retrato({
         seed: nombre,
         size: tam * 2,
         radius: 50,
-        backgroundColor: ["f2ede4"],
+        backgroundColor: ["2b2e33"],
         scale: 108,
       }).toDataUri(),
     [nombre, tam]

@@ -67,7 +67,7 @@ export function ContadorEscasez({
         aria-hidden
         style={{
           fontSize: "var(--paso-4)",
-          color: sobreTinta ? "rgba(242,237,228,0.35)" : "var(--tinta-tenue)",
+          color: "var(--tinta-tenue)",
           transform: "translateY(-0.35em)",
         }}
       >
@@ -136,11 +136,7 @@ function Cifra({
           lineHeight: 0.86,
           fontWeight: 600,
           letterSpacing: "-0.035em",
-          color: urgente
-            ? "var(--urgente)"
-            : sobreTinta
-              ? "var(--fondo-elevado)"
-              : "var(--tinta)",
+          color: urgente ? "var(--urgente)" : "var(--tinta)",
           transition: "color var(--dur-ui) var(--curva-entrada)",
         }}
       >
@@ -151,7 +147,7 @@ function Cifra({
           fontSize: "var(--escasez-etiqueta)",
           letterSpacing: "0.14em",
           textTransform: "uppercase",
-          color: sobreTinta ? "rgba(242,237,228,0.55)" : "var(--tinta-tenue)",
+          color: "var(--tinta-tenue)",
           marginTop: "var(--hueco-2)",
         }}
       >

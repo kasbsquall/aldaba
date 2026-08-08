@@ -10,22 +10,25 @@
  * Una sola familia de grises, tintada calida de forma consistente. Ni negro ni
  * blanco puros: ambos se sienten digitales y planos contra tinta real. */
 :root {
-  --hueso-50: oklch(98.2% 0.006 78);
-  --hueso-100: oklch(96.4% 0.008 76);
-  --hueso-200: oklch(93.1% 0.009 74);
-  --hueso-300: oklch(87.4% 0.010 72);
-  --hueso-400: oklch(72.6% 0.011 68);
-  --hueso-500: oklch(58.0% 0.012 64);
-  --hueso-600: oklch(45.2% 0.013 60);
-  --hueso-700: oklch(34.0% 0.014 56);
-  --hueso-800: oklch(25.6% 0.014 52);
-  --hueso-900: oklch(18.4% 0.013 48);
+  --hueso-50: oklch(97.6% 0.003 250);
+  --hueso-100: oklch(94.2% 0.004 250);
+  --hueso-200: oklch(87.5% 0.005 250);
+  --hueso-300: oklch(77.5% 0.006 250);
+  --hueso-400: oklch(63.5% 0.007 250);
+  --hueso-500: oklch(51.5% 0.008 250);
+  --hueso-600: oklch(40.5% 0.008 250);
+  --hueso-700: oklch(30.5% 0.008 250);
+  --hueso-800: oklch(23.2% 0.008 250);
+  --hueso-900: oklch(17.2% 0.008 250);
+  /* Un peldano por debajo del fondo, para las superficies hundidas. Sin el, en
+     esquema oscuro no hay forma de hundir nada: solo se puede subir. */
+  --hueso-950: oklch(13.0% 0.008 250);
 
   /* Acento unico. Solo significa una cosa: el plazo esta por vencer. Que el rojo
    * quiera decir siempre lo mismo es lo que lo hace legible de un vistazo. */
-  --senal-500: oklch(55.4% 0.203 27);
-  --senal-600: oklch(48.0% 0.192 27);
-  --senal-100: oklch(94.0% 0.038 27);
+  --senal-500: oklch(80.5% 0.148 82);
+  --senal-600: oklch(72.0% 0.140 82);
+  --senal-100: oklch(28.0% 0.052 82);
 
   /* Verde apagado, deliberadamente discreto: resolver es el estado tranquilo y no
    * tiene que competir por atencion con lo que esta a punto de vencer. */
@@ -65,17 +68,17 @@
 
 /* ── Capa 2 · Semanticas ──────────────────────────────────────────────────── */
 :root {
-  --fondo: var(--hueso-100);
-  --fondo-elevado: var(--hueso-50);
-  --fondo-hundido: var(--hueso-200);
+  --fondo: var(--hueso-900);
+  --fondo-elevado: var(--hueso-800);
+  --fondo-hundido: var(--hueso-950);
 
-  --tinta: var(--hueso-900);
-  --tinta-media: var(--hueso-600);
-  --tinta-tenue: var(--hueso-500);
+  --tinta: var(--hueso-50);
+  --tinta-media: var(--hueso-300);
+  --tinta-tenue: var(--hueso-400);
 
   /* Divisorias finas con alfa bajo. Una linea que se ve como linea y no como barra. */
-  --linea: color-mix(in oklch, var(--hueso-900) 9%, transparent);
-  --linea-fuerte: color-mix(in oklch, var(--hueso-900) 16%, transparent);
+  --linea: color-mix(in oklch, var(--hueso-50) 11%, transparent);
+  --linea-fuerte: color-mix(in oklch, var(--hueso-50) 22%, transparent);
 
   --urgente: var(--senal-500);
   --urgente-fondo: var(--senal-100);
@@ -377,15 +380,19 @@ p {
   align-items: center;
   gap: var(--hueco-8);
   padding: var(--hueco-4) var(--hueco-6);
-  background: var(--tinta);
-  color: var(--fondo-elevado);
+  /* En esquema claro la losa era tinta llena e invertia la pagina. En oscuro esa
+     misma inversion da un bloque blanco que deslumbra y roba el protagonismo al
+     dato. Aqui la masa la da subir la superficie, no encenderla. */
+  background: var(--fondo-elevado);
+  color: var(--tinta);
+  border: 1px solid var(--linea);
   border-radius: var(--radio);
 }
 .losa .prosa-losa {
   max-width: 46ch;
   margin: 0;
   font-size: var(--paso-1);
-  color: var(--acento-claro, #E9835F);
+  color: var(--senal-500);
   text-wrap: pretty;
 }
 
