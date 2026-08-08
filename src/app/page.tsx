@@ -20,14 +20,25 @@ import {
  * sin tension, que es justo el momento en que se evalua el proyecto. El id vive en
  * sessionStorage para que recargar caiga en la misma sala y no arranque otra. */
 function usarSesion(): string | null {
-  const [id, setId] = useState<string | null>(null);
-  useEffect(() => {
+  // El id se calcula durante el primer render del cliente, no en un efecto.
+  //
+  // Derivarlo de un efecto lo dejaba en null indefinidamente: el componente
+  // renderizaba en el cliente pero su efecto no llegaba a correr, asi que
+  // `/api/sesion` no se disparaba nunca y el tablero se quedaba vacio para
+  // siempre. Con un inicializador perezoso el valor existe ya en el primer
+  // render, sin depender de que nada se ejecute despues.
+  //
+  // En el servidor devuelve null porque sessionStorage no existe alli, y eso no
+  // produce desajuste de hidratacion: en el primer pintado la sala todavia no
+  // tiene mensajes, asi que servidor y cliente dibujan el mismo esqueleto.
+  const [id] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
     const previo = sessionStorage.getItem("aldaba:sesion");
-    if (previo) return setId(previo);
+    if (previo) return previo;
     const nuevo = `s${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
     sessionStorage.setItem("aldaba:sesion", nuevo);
-    setId(nuevo);
-  }, []);
+    return nuevo;
+  });
   return id;
 }
 

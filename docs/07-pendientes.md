@@ -1,42 +1,31 @@
 # Pendientes
 
-## BLOQUEANTE · El tablero no se puebla
+## Resuelto · El tablero no se poblaba
 
-**Sintoma.** La sala carga el armazon (cabecera, marca, esqueletos) pero el tablero
-se queda vacio para siempre. El contrafactual tampoco aparece.
+Era un **desajuste de hidratacion**, y tardo en aparecer porque no se manifestaba
+como un error visible sino como una pagina muerta.
 
-**Lo que ya se descarto:**
+`usarContrafactual` leia `sessionStorage` durante el render para decidir si mostrarse.
+En el servidor no hay `sessionStorage`, asi que el servidor pintaba una cosa y el
+cliente otra. React detecta la diferencia, descarta el arbol y lo regenera, y en ese
+descarte se pierden los efectos del componente de pagina. De ahi el sintoma raro que
+costo diagnosticar: los efectos del hijo (`Proveedor`) corrian y los del padre no, asi
+que `/api/portal-token` se llamaba y `/api/sesion` nunca.
 
-- No es la hidratacion ni los efectos en general. `GET /api/portal-token` aparece en
-  el log del servidor en cada carga, y ese fetch vive en un `useEffect` de
-  `Proveedor`, o sea que el cliente hidrata y ejecuta efectos.
-- No hay errores en consola, ni de React ni de red.
-- No es el contrafactual: el sintoma existia antes de agregarlo. Se introdujo con el
-  cambio de sala por visitante.
+La correccion tiene dos partes. El contrafactual arranca visible siempre, tambien en
+el servidor, y se cierra despues en un efecto si esa sala ya lo vio: asi servidor y
+cliente pintan lo mismo en el primer render. Y el id de sala se calcula con un
+inicializador perezoso en vez de un efecto, que ademas lo hace inmune a este fallo.
 
-**Lo que apunta al problema.** `GET /api/sesion` NO aparece nunca en el log. Ese
-fetch vive en `useSala` y esta condicionado a que `sesionId` no sea nulo. Los dos
-hooks que fallan (`usarSesion` y `usarContrafactual`) viven en el componente
-`Pagina`, y el que si funciona (`Proveedor`) es un hijo. Eso sugiere que los efectos
-de `Pagina` no estan corriendo o estan fallando en silencio, mientras los de sus
-hijos si.
+Leccion para el resto del proyecto: leer `sessionStorage`, `localStorage` o
+`window` durante el render de un componente que el servidor tambien pinta rompe la
+hidratacion, y el sintoma puede aparecer muy lejos de la causa.
 
-**Por donde seguir, en orden:**
-
-1. Poner un `console.log` dentro del efecto de `usarSesion` y confirmar si entra.
-2. Si no entra, revisar si algo antes en el arbol esta suspendiendo `Pagina`.
-3. Si entra pero `setId` no re-renderiza, sospechar de `if (previo) return setId(previo)`:
-   devolver el resultado de un setter desde un efecto es legal pero confuso, y
-   conviene separarlo en dos lineas para descartarlo.
-4. Alternativa que evita el problema entero: generar el id de sala en el servidor y
-   pasarlo como prop desde un Server Component, en vez de derivarlo de
-   sessionStorage despues de hidratar.
-
-## Otros, no bloqueantes
+## Abiertos
 
 - El aside deja un vacio grande abajo a la derecha. Se lee como inacabado.
 - Sin probar en movil ni en 768px.
-- El item de inbox llega sin titulo, lo que sugiere que se esta recibiendo el item
-  del envio dirigido y no el descriptor del puente `notify`.
+- El item de inbox llega sin titulo, lo que sugiere que se recibe el item del envio
+  dirigido y no el descriptor del puente `notify`.
 - Falta el despliegue con URL estable, las tres auditorias por subagente, el video,
   el README y el pitch de 200 caracteres.

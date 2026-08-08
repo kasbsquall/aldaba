@@ -226,13 +226,20 @@ export function Contrafactual({ onTerminar }: { onTerminar: () => void }) {
 
 /** Se muestra una vez por sala. Recargar no lo repite; reiniciar el escenario sí. */
 export function usarContrafactual(sesion: string | null): [boolean, () => void] {
-  const [visible, setVisible] = useState(false);
+  // Arranca visible SIEMPRE, tambien en el servidor, y se cierra despues si esta
+  // sala ya lo vio.
+  //
+  // Es la unica forma de que servidor y cliente pinten lo mismo en el primer
+  // render. Decidirlo leyendo sessionStorage durante el render producia un
+  // desajuste de hidratacion, y ese desajuste es lo que rompia la pagina entera:
+  // React descartaba el arbol y lo regeneraba, y en ese descarte se perdian los
+  // efectos del componente de pagina. De ahi venia que el hijo montara y el padre
+  // no, y que la sala nunca arrancara.
+  const [visible, setVisible] = useState(true);
 
   useEffect(() => {
     if (!sesion) return;
-    const clave = `aldaba:visto:${sesion}`;
-    if (sessionStorage.getItem(clave)) return;
-    setVisible(true);
+    if (sessionStorage.getItem(`aldaba:visto:${sesion}`)) setVisible(false);
   }, [sesion]);
 
   function cerrar() {
