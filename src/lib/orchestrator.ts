@@ -3,6 +3,7 @@ import { altaDeMiembros } from "./portal-admin";
 import { ActorSembrado } from "./seeded";
 import { APROBADORES, AGENTES, type AgenteSpec } from "./cast";
 import { canalDeCaso, type MensajeAldaba } from "./protocol";
+import { trazaDe } from "./reasoning";
 
 // El orquestador de Aldaba.
 //
@@ -110,11 +111,54 @@ export class Sesion {
     );
     this.actores.forEach((a) => a.planificar());
 
-    // Cada agente cruza su umbral en su propio momento. Escalonarlos es lo que hace
-    // que el tablero tenga tension desde el segundo cero en vez de encenderse de golpe.
+    // Cada agente razona en voz alta y cruza su umbral en su propio momento.
+    // Escalonarlos es lo que hace que el tablero tenga tension desde el segundo cero
+    // en vez de encenderse de golpe.
     for (const spec of AGENTES) {
-      this.programar(() => void this.bloquear(spec.id), spec.bloqueaEn * 1000);
+      void this.razonarHastaBloquear(spec);
     }
+  }
+
+  /**
+   * El agente piensa en voz alta y, al final de su traza, se topa con el umbral.
+   *
+   * El razonamiento va efimero: es ruido de fondo que no tiene que sobrevivir a un
+   * refresh. Lo que si sobrevive es el resumen que viaja en el threshold.
+   */
+  private async razonarHastaBloquear(spec: AgenteSpec): Promise<void> {
+    const pasos = await trazaDe(spec);
+
+    // Reparte la traza dentro de la ventana que este agente tiene antes de bloquear,
+    // para que los cinco carriles no se enciendan a la vez ni terminen todos juntos.
+    const ventana = spec.bloqueaEn * 1000;
+    const total = pasos.reduce((s, p) => s + p.pausa, 0) || 1;
+    const escala = ventana / total;
+
+    let acumulado = 0;
+    pasos.forEach((paso, i) => {
+      acumulado += paso.pausa * escala;
+      this.programar(() => {
+        if (!this.viva) return;
+        this.publicarSuelto({
+          type: "aldaba.reason",
+          content: { agente: spec.id, paso: i + 1, texto: paso.texto },
+        });
+        if (paso.herramienta) {
+          this.publicarSuelto({
+            type: "aldaba.tool",
+            content: {
+              agente: spec.id,
+              paso: i + 1,
+              herramienta: paso.herramienta.nombre,
+              estado: "ok",
+              resumen: paso.herramienta.resumen,
+            },
+          });
+        }
+      }, acumulado);
+    });
+
+    this.programar(() => void this.bloquear(spec.id), ventana);
   }
 
   /** Un agente cruzo su umbral y se detiene. */
@@ -352,6 +396,22 @@ export class Sesion {
 
   private publicar(mensaje: MensajeAldaba, para?: string) {
     return this.sala.publicar(mensaje, para);
+  }
+
+  /**
+   * Publica sin bloquear al llamador, pero deja rastro si falla.
+   *
+   * Un `void promesa` se traga el error y el sintoma aparece mucho despues como
+   * "faltan mensajes en la pantalla", que es de lo mas caro de diagnosticar contra
+   * reloj.
+   */
+  private publicarSuelto(mensaje: MensajeAldaba) {
+    this.publicar(mensaje).catch((e) => {
+      console.error(
+        `[aldaba] no se pudo publicar ${mensaje.type}:`,
+        e instanceof Error ? e.message : e
+      );
+    });
   }
 
   detener(): void {

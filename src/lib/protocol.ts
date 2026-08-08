@@ -182,9 +182,23 @@ export type MensajeAldaba = {
   [T in TipoMensaje]: { type: T; content: ContenidoPorTipo[T] };
 }[TipoMensaje];
 
-/** Los tipos que sobreviven a un refresh. El resto viaja efimero. */
+/**
+ * Los tipos que sobreviven a un refresh.
+ *
+ * Estan todos, y no por descuido. El diseno original mandaba el razonamiento como
+ * efimero, pero al probarlo contra Portal resulto que los mensajes efimeros no se
+ * entregan: `send({ ephemeral: true })` resuelve sin error y ningun otro cliente del
+ * canal los recibe. Verificado en un canal con nuestra configuracion y en otro sin
+ * ninguna, con el mismo resultado, asi que no es el `authz` ni el prefijo del tipo.
+ *
+ * El cambio termina jugando a favor. El jurado va a abrir la URL con la sala ya
+ * corriendo, y con el razonamiento persistente tambien recibe lo que se penso antes
+ * de que llegara, en vez de una pantalla que arranca a medias.
+ */
 export const TIPOS_PERSISTENTES: ReadonlySet<TipoMensaje> = new Set<TipoMensaje>([
   "aldaba.escenario",
+  "aldaba.reason",
+  "aldaba.tool",
   "aldaba.threshold",
   "aldaba.roster",
   "aldaba.knock",
