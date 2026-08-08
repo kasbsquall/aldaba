@@ -462,8 +462,15 @@ p {
   list-style: none;
   margin: 0;
   padding: 0;
-  columns: 2;
+  /* Rejilla y no `columns`. El reparto en columnas de CSS reequilibra la altura
+     mientras las filas entran con su animacion escalonada, y el resultado eran filas
+     sueltas y huecos de medio bloque. Una rejilla coloca cada fila en un sitio fijo
+     y la animacion solo toca la opacidad. */
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   column-gap: var(--hueco-6);
+  grid-auto-flow: column;
+  grid-template-rows: repeat(6, auto);
 }
 .rastro-fila {
   display: grid;
@@ -472,7 +479,6 @@ p {
   gap: var(--hueco-2);
   padding: var(--hueco-2) 0;
   border-bottom: 1px solid var(--linea);
-  break-inside: avoid;
   font-size: var(--paso--1);
   animation: surgir var(--dur-bloque) var(--curva-entrada) backwards;
   animation-delay: calc(var(--i) * 30ms);
@@ -521,7 +527,7 @@ p {
 }
 @media (max-width: 900px) {
   .banda { grid-template-columns: 1fr; gap: var(--hueco-6); }
-  .rastro-rejilla { columns: 1; }
+  .rastro-rejilla { grid-template-columns: 1fr; grid-auto-flow: row; grid-template-rows: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   .histo-barra, .rastro-fila { animation: none; }
