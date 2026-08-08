@@ -127,8 +127,10 @@ function Histograma({ firmas }: { firmas: number[] }) {
 
 export function BandaHistorica({ tablero }: { tablero: Tablero }) {
   if (!tablero.arrancado) return null;
+  // Nunca devolver el id como respaldo. Alguien que entro y ya se fue no esta en el
+  // roster, y sacar "ap_hmskyhoi3kqb" en pantalla es filtrar la tuberia al usuario.
   const nombreDe = (id: string) =>
-    tablero.aprobadores.find((a) => a.id === id)?.nombre ?? id;
+    tablero.aprobadores.find((a) => a.id === id)?.nombre ?? "alguien que ya salió";
   return (
     <div className="banda">
       <Rastro rastro={tablero.rastro ?? []} nombreDe={nombreDe} />
