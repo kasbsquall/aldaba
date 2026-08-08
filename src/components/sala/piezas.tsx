@@ -26,7 +26,10 @@ function moneda(m: { valor: number; moneda: string }) {
  * El protagonista. Es lo unico que hay que entender en los primeros diez
  * segundos, y el unico bloque que ningun otro proyecto va a tener en pantalla. */
 export function ContadorEscasez({ tablero }: { tablero: Tablero }) {
-  const libres = tablero.aprobadores.filter((a) => a.conectado).length;
+  // Disponible es conectado Y libre. Contar solo conectados seria contradecir la
+  // tesis del producto en el numero mas grande de la pantalla: alguien que ya esta
+  // atendiendo otra operacion esta presente, no disponible.
+  const libres = tablero.aprobadores.filter((a) => a.conectado && !a.atendiendo).length;
   const esperan = tablero.carriles.filter((c) => c.estado === "esperando").length;
   const tenso = esperan > libres;
 
@@ -40,7 +43,7 @@ export function ContadorEscasez({ tablero }: { tablero: Tablero }) {
       className="surge"
       style={{ display: "flex", alignItems: "baseline", gap: "var(--hueco-8)" }}
     >
-      <Cifra valor={libres} etiqueta="disponibles ahora" />
+      <Cifra valor={libres} etiqueta="libres ahora mismo" />
       <span
         aria-hidden
         style={{
@@ -268,8 +271,14 @@ function EstadoIcono({ carril }: { carril: CarrilVista }) {
 }
 
 function leyendaEstado(c: CarrilVista, nombreDe: (id: string) => string): string {
-  if (c.estado === "aprobado") return `firmada por ${nombreDe(c.veredicto?.aprobador ?? "")}`;
-  if (c.estado === "rechazado") return `rechazada por ${nombreDe(c.veredicto?.aprobador ?? "")}`;
+  const quien = (id: string | undefined) => {
+    if (!id) return "alguien";
+    const n = nombreDe(id);
+    // "firmada por Tú" no es español. La primera persona necesita otra preposición.
+    return n === "Tú" ? "ti" : n;
+  };
+  if (c.estado === "aprobado") return `firmada por ${quien(c.veredicto?.aprobador)}`;
+  if (c.estado === "rechazado") return `rechazada por ${quien(c.veredicto?.aprobador)}`;
   if (c.estado === "retenido") return "nadie abrió · retenida";
   if (c.estado === "esperando" && c.tocandoA)
     return `tocando a ${nombreDe(c.tocandoA)} · puerta ${c.intento}`;
@@ -413,7 +422,7 @@ export function CarrilProtagonista({
           }}
         >
           {carril.estado === "esperando"
-            ? `Le toca a ${nombreDe(carril.tocandoA ?? "")}. Si no abre, el agente escala solo.`
+            ? `Le toca a ${nombreDe(carril.tocandoA ?? "")}. Si no abre en el plazo, el agente busca a la siguiente persona disponible.`
             : carril.cierre?.resumen ?? "El agente sigue trabajando."}
         </p>
       )}

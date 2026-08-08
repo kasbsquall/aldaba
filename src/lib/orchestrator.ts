@@ -385,10 +385,12 @@ export class Sesion {
         caseId: this.sesionId,
         agente: agenteId,
         desenlace: decision === "aprobado" ? "completado" : "cancelado",
+        // Nombre, nunca el identificador: `ap_visitante` en pantalla delata que
+        // nadie reviso el texto que ve el usuario.
         resumen:
           decision === "aprobado"
-            ? `${carril.spec.operacion} ejecutada tras la firma de ${aprobadorId}.`
-            : `${carril.spec.operacion} cancelada por decisión de ${aprobadorId}.`,
+            ? `${carril.spec.operacion} ejecutada tras la firma de ${nombreDe(aprobadorId)}.`
+            : `${carril.spec.operacion} cancelada por decisión de ${nombreDe(aprobadorId)}.`,
       },
     });
 
@@ -500,13 +502,12 @@ function moneda(m: { valor: number; moneda: string }) {
   return `${simbolo} ${m.valor.toLocaleString("es-PE")}`;
 }
 
+function nombreDe(id: string): string {
+  return APROBADORES.find((a) => a.id === id)?.nombre ?? id;
+}
+
 function resumenDe(spec: AgenteSpec): string[] {
-  return [
-    `Validé la operación contra el maestro de contrapartes y ${spec.contraparte} no tiene historial previo.`,
-    `El monto ${moneda(spec.monto)} supera el límite que puedo ejecutar sin firma.`,
-    `Regla que me detiene: ${spec.regla}.`,
-    `Los datos del beneficiario coinciden con los del contrato, sin observaciones.`,
-  ];
+  return spec.resumen;
 }
 
 // Un proceso, una sesion viva. Next corriendo como proceso largo mantiene esto en

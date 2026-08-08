@@ -194,3 +194,41 @@ p {
   40% { opacity: 1; transform: scale(1.06); }
   100% { opacity: 1; transform: scale(1); }
 }
+
+
+/* ── Composicion de la sala ───────────────────────────────────────────────────
+ * La proporcion se expresa como proporcion, no como columna fija. Con una columna
+ * de ancho fijo el reparto deriva con el viewport: a 1512px daba 75/25 en vez de
+ * los dos tercios declarados, a 753px el carril protagonista quedaba mas estrecho
+ * que el panel, y a 390px colapsaba a cero con scroll horizontal. */
+.pagina {
+  min-height: 100dvh;
+  padding: var(--hueco-6) clamp(var(--hueco-4), 4vw, var(--hueco-16)) var(--hueco-24);
+}
+
+.sala {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--hueco-12);
+  align-items: start;
+  padding-top: var(--hueco-12);
+}
+
+@media (min-width: 62rem) {
+  .sala {
+    grid-template-columns: minmax(0, 2fr) minmax(18rem, 1fr);
+    column-gap: var(--hueco-16);
+    padding-top: var(--hueco-16);
+  }
+}
+
+/* El aire va entre bloques, nunca dentro de las filas. */
+.columna-principal {
+  display: grid;
+  gap: var(--hueco-16);
+}
+
+.panel {
+  display: grid;
+  gap: var(--hueco-12);
+}

@@ -81,7 +81,7 @@ function Tablero({ sesion, identidad }: { sesion: string | null; identidad: Iden
   const secundarios = tablero.carriles.filter((c) => c.id !== protagonista?.id);
 
   return (
-    <div style={{ minHeight: "100dvh", padding: "var(--hueco-8) var(--hueco-8) var(--hueco-16)" }}>
+    <div className="pagina">
       <header
         style={{
           display: "flex",
@@ -116,17 +116,22 @@ function Tablero({ sesion, identidad }: { sesion: string | null; identidad: Iden
         </button>
       </header>
 
-      <main
-        style={{
-          display: "grid",
-          gridTemplateColumns: "minmax(0, 1fr) var(--panel-ancho-menor)",
-          gap: "var(--hueco-12)",
-          alignItems: "start",
-          paddingTop: "var(--hueco-12)",
-        }}
-      >
-        <div style={{ display: "grid", gap: "var(--hueco-8)" }}>
+      <main className="sala">
+        <div className="columna-principal">
           <ContadorEscasez tablero={tablero} />
+
+          <p
+            style={{
+              maxWidth: "54ch",
+              fontSize: "var(--paso-1)",
+              color: "var(--tinta-media)",
+              margin: 0,
+            }}
+          >
+            Cinco agentes necesitan una firma humana para seguir. En vez de esperar,
+            cada uno busca quién está libre en este momento y le toca la puerta. Si
+            nadie abre dentro del plazo, escala solo a la siguiente persona.
+          </p>
 
           {protagonista ? (
             <CarrilProtagonista
@@ -140,7 +145,7 @@ function Tablero({ sesion, identidad }: { sesion: string | null; identidad: Iden
           )}
         </div>
 
-        <aside style={{ display: "grid", gap: "var(--hueco-8)" }} className="surge">
+        <aside className="panel surge">
           <section>
             <Etiqueta>Quién está</Etiqueta>
             <div style={{ marginTop: "var(--hueco-2)" }}>
@@ -155,6 +160,23 @@ function Tablero({ sesion, identidad }: { sesion: string | null; identidad: Iden
                 <FilaCarril key={c.id} carril={c} indice={i} nombreDe={nombreDe} />
               ))}
             </ul>
+          </section>
+
+          <section
+            style={{
+              borderTop: "1px solid var(--linea)",
+              paddingTop: "var(--hueco-3)",
+              fontSize: "var(--paso--1)",
+              color: "var(--tinta-tenue)",
+              lineHeight: 1.6,
+            }}
+          >
+            <Etiqueta>Cómo escala</Etiqueta>
+            <p style={{ margin: "var(--hueco-2) 0 0" }}>
+              Cada puerta tiene entre 18 y 30 segundos según la severidad de la
+              operación. Al vencer, el agente toca a la siguiente persona disponible.
+              Agotadas las tres, la operación queda retenida y no se ejecuta.
+            </p>
           </section>
         </aside>
       </main>

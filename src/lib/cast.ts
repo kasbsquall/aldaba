@@ -69,6 +69,15 @@ export interface AgenteSpec {
   enVivo: boolean;
   /** Segundos desde el arranque en que este agente cruza su umbral. */
   bloqueaEn: number;
+  /**
+   * Las lineas que ve quien llega tarde y no presencio el razonamiento.
+   *
+   * Van escritas una por una y no generadas con una plantilla. Una plantilla que
+   * dice "la contraparte no tiene historial previo" produce frases sin sentido en
+   * cuanto la contraparte son 312 clientes o la mesa de dinero interna, y un jurado
+   * del sector financiero lo detecta en la primera lectura.
+   */
+  resumen: string[];
 }
 
 // Un solo carril corre un LLM real. Los otros cuatro publican trazas guionadas por
@@ -88,6 +97,12 @@ export const AGENTES: AgenteSpec[] = [
     plazo: 20,
     enVivo: true,
     bloqueaEn: 6,
+    resumen: [
+      "Andina Logística SAC no figura en el maestro de contrapartes: es su primera operación con nosotros.",
+      "Los datos bancarios coinciden con los del contrato firmado, sin observaciones.",
+      "Hay cobertura suficiente en la cuenta de origen.",
+      "S/ 48 200 supera el límite que puedo ejecutar sin firma hacia una contraparte nueva.",
+    ],
   },
   {
     id: "ag_refund",
@@ -100,6 +115,12 @@ export const AGENTES: AgenteSpec[] = [
     plazo: 25,
     enVivo: false,
     bloqueaEn: 3,
+    resumen: [
+      "La incidencia del 6 de agosto dejó 312 cobros duplicados, todos confirmados contra el log de la pasarela.",
+      "Cada reembolso individual está dentro de mi límite; el agregado no.",
+      "Los 312 destinos son cuentas ya usadas por esos mismos clientes.",
+      "S/ 12 940 en una sola ejecución supera el tope de reembolso agregado.",
+    ],
   },
   {
     id: "ag_limit",
@@ -112,6 +133,12 @@ export const AGENTES: AgenteSpec[] = [
     plazo: 18,
     enVivo: false,
     bloqueaEn: 9,
+    resumen: [
+      "Comercial Huaraz EIRL tiene 14 meses de historial sin atrasos.",
+      "La línea vigente es de S/ 90 000 y la ampliación pedida la lleva a S/ 240 000.",
+      "El ratio de endeudamiento resultante queda dentro de política.",
+      "El salto es del 167% sobre la línea vigente y el techo que puedo aprobar es 40%.",
+    ],
   },
   {
     id: "ag_fx",
@@ -124,6 +151,12 @@ export const AGENTES: AgenteSpec[] = [
     plazo: 30,
     enVivo: false,
     bloqueaEn: 12,
+    resumen: [
+      "La posición en dólares queda cubierta al 92% con esta operación.",
+      "El tipo de cambio ofrecido es 3.71, y la banda autorizada cierra en 3.68.",
+      "La contraparte es la mesa de dinero interna, no un tercero.",
+      "Operar fuera de la banda necesita firma, sin importar el monto.",
+    ],
   },
   {
     id: "ag_payroll",
@@ -136,5 +169,11 @@ export const AGENTES: AgenteSpec[] = [
     plazo: 22,
     enVivo: false,
     bloqueaEn: 15,
+    resumen: [
+      "Los 84 colaboradores y sus montos coinciden con la planilla aprobada del mes.",
+      "El desembolso está programado para el día 30 y hoy es 8.",
+      "El área de personal pidió el adelanto por el feriado largo.",
+      "Adelantar planilla fuera de calendario no está en mis atribuciones.",
+    ],
   },
 ];
