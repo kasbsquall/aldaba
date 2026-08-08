@@ -43,6 +43,16 @@ export function useReordenar<T extends HTMLElement>() {
       const clave = hijo.dataset.clave;
       if (!clave) continue;
 
+      // Cancelar la animacion en vuelo ANTES de medir.
+      //
+      // `getBoundingClientRect` incluye el transform activo, asi que medir a mitad de
+      // una animacion devuelve la posicion animada y no la real. El siguiente delta
+      // sale de un origen falso, los desplazamientos se acumulan y las filas terminan
+      // dibujadas unas encima de otras. Al cancelar, el elemento vuelve a su sitio de
+      // layout y la medida es la buena; como acto seguido se lanza la animacion nueva
+      // desde el delta correcto, el movimiento se ve continuo.
+      for (const a of hijo.getAnimations()) if (a.id === "flip") a.cancel();
+
       const arriba = hijo.getBoundingClientRect().top;
       nuevas.set(clave, arriba);
 
@@ -55,10 +65,13 @@ export function useReordenar<T extends HTMLElement>() {
       const delta = antes - arriba;
       if (Math.abs(delta) < 2) continue;
 
-      hijo.animate(
+      const anim = hijo.animate(
         [{ transform: `translateY(${delta}px)` }, { transform: "none" }],
         { duration: DURACION, easing: "cubic-bezier(0.23, 1, 0.32, 1)" }
       );
+      // Etiquetada para poder distinguirla de las animaciones CSS de entrada, que no
+      // hay que cancelar.
+      anim.id = "flip";
     }
 
     posiciones.current = nuevas;

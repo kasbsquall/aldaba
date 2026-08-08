@@ -243,7 +243,10 @@ p {
 /* El silencio antes de que empiece el tablero. Es el unico intervalo grande de la
  * pagina y por eso funciona: si hubiera tres, no habria ninguno. */
 .tablero {
-  margin-top: var(--hueco-32);
+  /* El margen de 32 separaba el tablero de la apertura cuando esta vivia dentro de
+     la columna. Al mandar la apertura a ancho completo el margen se quedo huerfano y
+     abria un hueco muerto de 128px entre la franja y el primer bloque. La separacion
+     la hace ahora `.apertura`. */
   display: grid;
   gap: var(--hueco-4);
 }
