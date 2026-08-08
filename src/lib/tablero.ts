@@ -52,6 +52,8 @@ export interface AprobadorVista {
   rol: string;
   sembrado: boolean;
   conectado: boolean;
+  /** Lo que declaro sobre si mismo, distinto de lo que el sistema infiere. */
+  ocupado?: boolean;
   /** Que carril esta atendiendo, si atiende alguno. */
   atendiendo: string | null;
 }
@@ -60,12 +62,15 @@ export interface Tablero {
   arrancado: boolean;
   carriles: CarrilVista[];
   aprobadores: AprobadorVista[];
+  /** El ultimo reparto de atencion decidido por el arbitro. */
+  arbitraje: { motivo: string; libres: number; porModelo: boolean } | null;
 }
 
 export const tableroVacio: Tablero = {
   arrancado: false,
   carriles: [],
   aprobadores: [],
+  arbitraje: null,
 };
 
 interface MensajeEntrante {
@@ -102,6 +107,7 @@ export function reducir(previo: Tablero, m: MensajeEntrante): Tablero {
     case "aldaba.escenario": {
       const c = m.content as Escenario;
       return {
+        ...previo,
         arrancado: true,
         carriles: c.agentes.map((a) => ({
           id: a.id,
@@ -223,6 +229,14 @@ export function reducir(previo: Tablero, m: MensajeEntrante): Tablero {
     case "aldaba.resume": {
       const c = m.content as Resume;
       return parchear(c.agente, {});
+    }
+
+    case "aldaba.arbitraje": {
+      const c = m.content as { motivo: string; libres: number; porModelo: boolean };
+      return {
+        ...previo,
+        arbitraje: { motivo: c.motivo, libres: c.libres, porModelo: c.porModelo },
+      };
     }
 
     case "aldaba.handoff": {

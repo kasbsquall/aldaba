@@ -12,7 +12,15 @@ import { esPersistente } from "./protocol";
 
 const IDENTIDAD_ORQUESTADOR = { userId: "orq_aldaba", username: "Aldaba" };
 
+export interface Participante {
+  id: string;
+  nombre: string;
+  /** Lo que la persona declaro sobre si misma, no lo que el sistema infiere. */
+  ocupado: boolean;
+}
+
 export interface Presencia {
+  participantes: Participante[];
   conectados: string[];
   total: number;
   /** `false` cuando el canal reporta presencia agregada y no hay lista nominal. */
@@ -62,10 +70,19 @@ export class SalaServidor {
    */
   presencia(): Presencia {
     const p = this.sala?.presence;
-    if (!p) return { conectados: [], total: 0, nominal: true };
+    if (!p) return { participantes: [], conectados: [], total: 0, nominal: true };
     if (p.kind === "detailed") {
+      // `metadata` la escribe cada navegador con `setMetadata`. Es lo que convierte
+      // "estar presente" en "estar disponible": dos cosas distintas, y la diferencia
+      // entre ambas es todo el producto.
+      const participantes = p.participants.map((u) => ({
+        id: u.id,
+        nombre: (u.username as string | undefined) ?? u.id,
+        ocupado: (u.metadata as { estado?: string } | undefined)?.estado === "ocupado",
+      }));
       return {
-        conectados: p.participants.map((u) => u.id),
+        participantes,
+        conectados: participantes.map((u) => u.id),
         total: p.count,
         nominal: true,
       };
@@ -73,7 +90,7 @@ export class SalaServidor {
     // En canales grandes Portal deja de mandar el roster nominal. Con una cadena de
     // tres aprobadores no deberia ocurrir, pero si ocurre hay que saberlo en vez de
     // enrutar contra una lista vacia.
-    return { conectados: [], total: p.count, nominal: false };
+    return { participantes: [], conectados: [], total: p.count, nominal: false };
   }
 
   async publicar(mensaje: MensajeAldaba, para?: string): Promise<void> {

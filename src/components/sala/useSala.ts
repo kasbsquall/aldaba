@@ -19,6 +19,9 @@ export interface Sala {
   miCarril: string | null;
   decidir: (agente: string, decision: "aprobado" | "rechazado") => Promise<void>;
   reiniciar: () => Promise<void>;
+  /** Lo que esta persona declaro sobre su propia disponibilidad. */
+  ocupado: boolean;
+  declararOcupado: (v: boolean) => void;
 }
 
 export function useSala(sesionId: string | null, miId: string | null): Sala {
@@ -31,9 +34,17 @@ export function useSala(sesionId: string | null, miId: string | null): Sala {
 
   // `channelId: undefined` deja el hook inerte y sin abrir conexion, que es lo
   // correcto mientras el id de sala todavia no existe.
-  const { messages, status } = useChannel({
+  const { messages, status, setMetadata, presence } = useChannel({
     channelId: sesionId ? canalDeCaso(sesionId) : undefined,
   });
+
+  // Lo que esta persona declara sobre si misma. Viaja como metadata de presencia,
+  // que el orquestador lee server-side para decidir a quien tocarle la puerta.
+  //
+  // Es la pieza que convierte la tesis en algo que el usuario HACE. Sin esto,
+  // "estar presente no es estar disponible" es una frase del README; con esto, se
+  // declara con un clic y el enrutamiento cambia delante de los demas.
+  const [ocupado, setOcupado] = useState(false);
 
   // El escenario arranca solo al abrir la URL. Nunca hay un estado inicial vacio
   // esperando a que el visitante haga algo.
@@ -54,10 +65,50 @@ export function useSala(sesionId: string | null, miId: string | null): Sala {
   }, [sesionId]);
 
   // Los mensajes en vivo se aplican encima de la foto, no desde cero.
-  const tablero = useMemo(
+  const conMensajes = useMemo(
     () => (messages ?? []).reduce<Tablero>((t, m) => reducir(t, m), base),
     [messages, base]
   );
+
+  /**
+   * El roster sale de la presencia del propio cliente, no de un mensaje.
+   *
+   * Es lo unico verdaderamente en vivo de la pantalla: cuando alguien abre la URL
+   * o pulsa "estoy ocupado", los demas lo ven sin que el servidor publique nada.
+   * Portal empuja el cambio de metadata a todos los conectados.
+   */
+  const tablero = useMemo(() => {
+    if (!presence || presence.kind !== "detailed") return conMensajes;
+
+    const vivos = presence.participants
+      .filter((p) => p.id !== "orq_aldaba")
+      .map((p) => ({
+        id: p.id,
+        nombre: (p.username as string | undefined) ?? p.id,
+        ocupado: (p.metadata as { estado?: string } | undefined)?.estado === "ocupado",
+      }));
+    const vivosPorId = new Map(vivos.map((v) => [v.id, v]));
+
+    const conocidos = new Map(conMensajes.aprobadores.map((a) => [a.id, a]));
+    const roster = vivos.map((v) => {
+      const previo = conocidos.get(v.id);
+      return {
+        id: v.id,
+        nombre: v.nombre,
+        rol: previo?.rol ?? "Aprobador de turno",
+        sembrado: previo?.sembrado ?? false,
+        conectado: true,
+        ocupado: v.ocupado,
+        atendiendo: previo?.atendiendo ?? null,
+      };
+    });
+    // Los que el tablero conoce pero ya no estan conectados siguen listados, en gris.
+    for (const a of conMensajes.aprobadores) {
+      if (!vivosPorId.has(a.id)) roster.push({ ...a, conectado: false, ocupado: false });
+    }
+
+    return { ...conMensajes, aprobadores: roster };
+  }, [conMensajes, presence]);
 
   const miCarril = useMemo(() => {
     if (!miId) return null;
@@ -83,8 +134,15 @@ export function useSala(sesionId: string | null, miId: string | null): Sala {
     window.location.reload();
   }
 
+  function declararOcupado(v: boolean) {
+    setOcupado(v);
+    setMetadata({ estado: v ? "ocupado" : "libre" });
+  }
+
   return {
     tablero,
+    ocupado,
+    declararOcupado,
     estado: arrancando ? "arrancando" : status,
     miId,
     miCarril,

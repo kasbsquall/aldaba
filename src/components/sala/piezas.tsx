@@ -11,6 +11,7 @@ import {
   UserCircleDashed,
   UserCircle,
   Wrench,
+  Scales,
 } from "@phosphor-icons/react";
 import { useCuentaAtras } from "./useSala";
 import type { AprobadorVista, CarrilVista, Tablero } from "@/lib/tablero";
@@ -29,7 +30,9 @@ export function ContadorEscasez({ tablero }: { tablero: Tablero }) {
   // Disponible es conectado Y libre. Contar solo conectados seria contradecir la
   // tesis del producto en el numero mas grande de la pantalla: alguien que ya esta
   // atendiendo otra operacion esta presente, no disponible.
-  const libres = tablero.aprobadores.filter((a) => a.conectado && !a.atendiendo).length;
+  const libres = tablero.aprobadores.filter(
+    (a) => a.conectado && !a.atendiendo && !a.ocupado
+  ).length;
   const esperan = tablero.carriles.filter((c) => c.estado === "esperando").length;
   const tenso = esperan > libres;
 
@@ -131,7 +134,17 @@ function Cifra({
 }
 
 /* ── Roster de presencia ─────────────────────────────────────────────────── */
-export function Roster({ aprobadores, miId }: { aprobadores: AprobadorVista[]; miId: string | null }) {
+export function Roster({
+  aprobadores,
+  miId,
+  ocupado,
+  onDeclarar,
+}: {
+  aprobadores: AprobadorVista[];
+  miId: string | null;
+  ocupado?: boolean;
+  onDeclarar?: (v: boolean) => void;
+}) {
   return (
     <ul style={{ display: "grid", gap: "var(--hueco-1)", listStyle: "none", padding: 0 }}>
       {aprobadores.map((a, i) => (
@@ -166,8 +179,38 @@ export function Roster({ aprobadores, miId }: { aprobadores: AprobadorVista[]; m
               textAlign: "right",
             }}
           >
-            {a.atendiendo ? "atendiendo" : a.conectado ? "libre" : "ausente"}
-            {a.sembrado ? " · automático" : ""}
+            {a.id === miId && onDeclarar ? (
+              <button
+                type="button"
+                onClick={() => onDeclarar(!ocupado)}
+                aria-pressed={Boolean(ocupado)}
+                title="Cambia tu disponibilidad. Los agentes lo leen al instante."
+                style={{
+                  font: "inherit",
+                  fontSize: "var(--paso--1)",
+                  cursor: "pointer",
+                  padding: "2px var(--hueco-2)",
+                  borderRadius: "var(--radio)",
+                  border: `1px solid ${ocupado ? "transparent" : "var(--linea-fuerte)"}`,
+                  background: ocupado ? "var(--tinta)" : "transparent",
+                  color: ocupado ? "var(--fondo-elevado)" : "var(--tinta-media)",
+                  transition: "background var(--dur-micro), color var(--dur-micro)",
+                }}
+              >
+                {ocupado ? "estoy ocupado" : "estoy libre"}
+              </button>
+            ) : (
+              <>
+                {a.ocupado
+                  ? "ocupado"
+                  : a.atendiendo
+                    ? "atendiendo"
+                    : a.conectado
+                      ? "libre"
+                      : "ausente"}
+                {a.sembrado ? " · automático" : ""}
+              </>
+            )}
           </span>
         </li>
       ))}
@@ -196,6 +239,63 @@ export function Reloj({ deadline, grande = false }: { deadline: number | null; g
     >
       {String(seg).padStart(2, "0")}s
     </span>
+  );
+}
+
+/* ── El arbitraje ────────────────────────────────────────────────────────────
+ * La única decisión de la pantalla que toma un modelo, y se rotula como tal.
+ *
+ * No decide la operación, decide el orden de la cola cuando hay más agentes
+ * pidiendo firma que personas libres. Ese reparto no tiene respuesta anticipable:
+ * es severidad, monto, plazo restante y tiempo congelado contra un número de
+ * humanos que cambia cada segundo. */
+export function Arbitraje({
+  arbitraje,
+}: {
+  arbitraje: { motivo: string; libres: number; porModelo: boolean } | null;
+}) {
+  if (!arbitraje) return null;
+
+  return (
+    <aside
+      className="surge"
+      style={{
+        borderLeft: "none",
+        background: "var(--fondo-elevado)",
+        border: "1px solid var(--linea-fuerte)",
+        borderRadius: "var(--radio)",
+        padding: "var(--hueco-4)",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "var(--hueco-1)",
+          fontSize: "var(--paso--1)",
+          letterSpacing: "0.12em",
+          textTransform: "uppercase",
+          color: "var(--tinta-tenue)",
+        }}
+      >
+        <Scales {...ICONO} aria-hidden />
+        {arbitraje.porModelo ? "Reparto decidido por el modelo" : "Reparto por regla"}
+        <span style={{ marginLeft: "auto", textTransform: "none", letterSpacing: 0 }}>
+          <span className="dato">{arbitraje.libres}</span> libre
+          {arbitraje.libres === 1 ? "" : "s"}
+        </span>
+      </div>
+      <p
+        style={{
+          margin: "var(--hueco-2) 0 0",
+          fontSize: "var(--paso-0)",
+          color: "var(--tinta)",
+          maxWidth: "62ch",
+        }}
+      >
+        {arbitraje.motivo}
+      </p>
+    </aside>
   );
 }
 
@@ -367,7 +467,7 @@ export function CarrilProtagonista({
           <Lightning {...ICONO} aria-hidden /> Razonamiento del agente
         </Etiqueta>
         <ul style={{ listStyle: "none", padding: 0, margin: "var(--hueco-2) 0 0" }}>
-          {(u?.resumenRazonamiento ?? carril.razonamiento).slice(-4).map((linea, i) => (
+          {(carril.razonamiento.length ? carril.razonamiento : (u?.resumenRazonamiento ?? [])).slice(-4).map((linea, i) => (
             <li
               key={`${i}-${linea.slice(0, 12)}`}
               className="surge-fila"

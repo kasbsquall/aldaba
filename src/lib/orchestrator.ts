@@ -1,9 +1,10 @@
 import { SalaServidor } from "./portal-server";
 import { altaDeMiembros } from "./portal-admin";
 import { ActorSembrado } from "./seeded";
-import { APROBADORES, AGENTES, type AgenteSpec } from "./cast";
+import { SEMBRADOS, AGENTES, type AgenteSpec } from "./cast";
 import { canalDeCaso, type MensajeAldaba } from "./protocol";
 import { trazaDe } from "./reasoning";
+import { arbitrar, type EnDisputa } from "./arbitro";
 
 // El orquestador de Aldaba.
 //
@@ -48,6 +49,10 @@ export class Sesion {
   /** Quien esta atendiendo que carril. Una persona, un carril. */
   private ocupados = new Map<string, string>();
   private actores: ActorSembrado[] = [];
+  /** Quien ya es miembro del canal, para no repetir el alta en cada toque. */
+  private dadosDeAlta = new Set<string>();
+  /** Evita llamar al arbitro en cada toque durante el mismo episodio. */
+  private arbitrando = false;
   private temporizadores: ReturnType<typeof setTimeout>[] = [];
   private arrancadaEn = 0;
   private viva = false;
@@ -66,7 +71,7 @@ export class Sesion {
     // el destinatario sea miembro, y el aprobador solo escucha su inbox.
     await altaDeMiembros(
       this.canalId,
-      APROBADORES.map((a) => a.id)
+      SEMBRADOS.map((a) => a.id)
     );
 
     await this.sala.conectar();
@@ -95,18 +100,18 @@ export class Sesion {
           nombre: a.nombre,
           operacion: a.operacion,
         })),
-        aprobadores: APROBADORES.map((a) => ({
+        aprobadores: SEMBRADOS.map((a) => ({
           id: a.id,
           nombre: a.nombre,
           rol: a.rol,
-          sembrado: a.kind === "sembrado",
+          sembrado: true,
         })),
       },
     });
 
     // Los aprobadores sembrados abren su propia conexion con su propia identidad, asi
     // que la presencia que lee el enrutamiento es real. Lo guionado es su conducta.
-    this.actores = APROBADORES.filter((a) => a.guion).map(
+    this.actores = SEMBRADOS.filter((a) => a.guion).map(
       (a) =>
         new ActorSembrado(a, this.canalId, (agente, aprobador, decision) =>
           this.resolver(agente, aprobador, decision)
@@ -164,6 +169,44 @@ export class Sesion {
     this.programar(() => void this.bloquear(spec.id), ventana);
   }
 
+  /** Sembrados mas los humanos presentes, sin duplicados y con los vivos primero. */
+  private cadenaDeAprobadores(
+    participantes: { id: string; nombre: string; ocupado: boolean }[]
+  ): { id: string; nombre: string }[] {
+    const vistos = new Set<string>();
+    const salida: { id: string; nombre: string }[] = [];
+    for (const p of participantes) {
+      if (vistos.has(p.id) || p.id === "orq_aldaba") continue;
+      vistos.add(p.id);
+      salida.push({ id: p.id, nombre: p.nombre });
+    }
+    for (const sem of SEMBRADOS) {
+      if (vistos.has(sem.id)) continue;
+      vistos.add(sem.id);
+      salida.push({ id: sem.id, nombre: sem.nombre });
+    }
+    return salida;
+  }
+
+  /** El roster que ve la pantalla. */
+  rosterVivo() {
+    const { participantes } = this.sala.presencia();
+    const porId = new Map(participantes.map((p) => [p.id, p]));
+    return this.cadenaDeAprobadores(participantes).map((a) => {
+      const vivo = porId.get(a.id);
+      const sem = SEMBRADOS.find((x) => x.id === a.id);
+      return {
+        id: a.id,
+        nombre: a.nombre,
+        rol: sem?.rol ?? "Aprobador de turno",
+        sembrado: Boolean(sem),
+        conectado: Boolean(vivo),
+        ocupado: Boolean(vivo?.ocupado),
+        atendiendo: this.ocupados.get(a.id) ?? null,
+      };
+    });
+  }
+
   /** Un agente cruzo su umbral y se detiene. */
   private async bloquear(agenteId: string): Promise<void> {
     const carril = this.carriles.get(agenteId);
@@ -204,27 +247,72 @@ export class Sesion {
 
     this.liberar(agenteId);
 
-    const { conectados } = this.sala.presencia();
-    const enLinea = new Set(conectados);
+    const { participantes } = this.sala.presencia();
+    const enLinea = new Map(participantes.map((p) => [p.id, p]));
 
-    // Conectado y libre vale 2, conectado pero ocupado 1, ausente 0. El primero de
-    // esa lista es la puerta que se toca, y la lista entera se publica para que la
-    // pantalla pueda mostrar por que se eligio a esa persona y no a otra.
-    const rango = (id: string) =>
-      enLinea.has(id) ? (this.ocupados.has(id) ? 1 : 2) : 0;
+    // La cadena no es una lista fija: son los sembrados mas quien haya entrado por su
+    // cuenta. Un humano que abre la URL aparece aqui sin que nadie lo de de alta.
+    const cadena = this.cadenaDeAprobadores(participantes);
 
-    const candidatos = APROBADORES.filter((a) => !carril.tocados.has(a.id)).sort(
-      (a, b) => rango(b.id) - rango(a.id)
+    // Libre 3, ocupado atendiendo otro carril 2, ocupado por decision propia 1,
+    // ausente 0.
+    //
+    // Que alguien se declare ocupado pese mas que estar ausente es deliberado: sigue
+    // ahi y puede cambiar de idea. Pero pesa menos que estar ocupado por el sistema,
+    // porque lo que la persona declara sobre si misma manda sobre lo que el sistema
+    // infiere. Esa distincion entre presencia y disponibilidad es todo el producto.
+    const rango = (id: string) => {
+      const p = enLinea.get(id);
+      if (!p) return 0;
+      if (p.ocupado) return 1;
+      return this.ocupados.has(id) ? 2 : 3;
+    };
+
+    const candidatos = cadena
+      .filter((a) => !carril.tocados.has(a.id))
+      .sort((a, b) => rango(b.id) - rango(a.id));
+    const elegido = candidatos[0] ?? null;
+
+    // Contencion real: mas carriles pidiendo firma que personas libres. Ahi no hay
+    // respuesta anticipable y decide el arbitro, una sola vez por episodio.
+    const libres = cadena.filter((a) => rango(a.id) === 3).length;
+    const pidiendo = [...this.carriles.values()].filter(
+      (c) => c.estado === "bloqueado" || c.estado === "tocando"
     );
-    const elegido = candidatos[0];
+    if (pidiendo.length > libres && libres >= 1 && !this.arbitrando) {
+      this.arbitrando = true;
+      const ahora = Date.now();
+      const disputa: EnDisputa[] = pidiendo.map((c) => ({
+        agente: c.spec,
+        congeladoSeg: Math.round((ahora - (c.bloqueadoEn ?? ahora)) / 1000),
+      }));
+      void arbitrar(disputa, libres)
+        .then((a) =>
+          this.publicar({
+            type: "aldaba.arbitraje",
+            content: {
+              caseId: this.sesionId,
+              orden: a.orden,
+              motivo: a.motivo,
+              libres,
+              porModelo: a.porModelo,
+            },
+          })
+        )
+        .catch(() => {})
+        .finally(() => {
+          // Un episodio de arbitraje por ventana, para no llamar al modelo en cada toque.
+          setTimeout(() => (this.arbitrando = false), 12_000);
+        });
+    }
 
     await this.publicar({
       type: "aldaba.roster",
       content: {
         caseId: this.sesionId,
         agente: agenteId,
-        conectados: APROBADORES.filter((a) => enLinea.has(a.id)).map((a) => a.id),
-        ausentes: APROBADORES.filter((a) => !enLinea.has(a.id)).map((a) => a.id),
+        conectados: cadena.filter((a) => enLinea.has(a.id)).map((a) => a.id),
+        ausentes: cadena.filter((a) => !enLinea.has(a.id)).map((a) => a.id),
         orden: candidatos.map((a) => a.id),
         tomadaEn: new Date().toISOString(),
       },
@@ -236,6 +324,15 @@ export class Sesion {
       // decoracion y el producto se quedaria sin premisa.
       await this.cederTurno(agenteId);
       return;
+    }
+
+    // Un humano que acaba de entrar todavia no es miembro del canal, y sin eso el
+    // envio dirigido falla con `not_member`. Se da de alta al vuelo, una sola vez.
+    if (!this.dadosDeAlta.has(elegido.id)) {
+      this.dadosDeAlta.add(elegido.id);
+      altaDeMiembros(this.canalId, [elegido.id]).catch((e) =>
+        console.error("[aldaba] no se pudo dar de alta a", elegido.id, e)
+      );
     }
 
     carril.estado = "tocando";
@@ -412,14 +509,8 @@ export class Sesion {
   instantanea() {
     return {
       arrancado: true,
-      aprobadores: APROBADORES.map((a) => ({
-        id: a.id,
-        nombre: a.nombre,
-        rol: a.rol,
-        sembrado: a.kind === "sembrado",
-        conectado: this.sala.presencia().conectados.includes(a.id),
-        atendiendo: this.ocupados.get(a.id) ?? null,
-      })),
+      arbitraje: null,
+      aprobadores: this.rosterVivo(),
       carriles: [...this.carriles.values()].map((c) => ({
         id: c.spec.id,
         nombre: c.spec.nombre,
@@ -503,7 +594,7 @@ function moneda(m: { valor: number; moneda: string }) {
 }
 
 function nombreDe(id: string): string {
-  return APROBADORES.find((a) => a.id === id)?.nombre ?? id;
+  return SEMBRADOS.find((a) => a.id === id)?.nombre ?? id;
 }
 
 function resumenDe(spec: AgenteSpec): string[] {

@@ -33,7 +33,8 @@ export type TipoMensaje =
   | "aldaba.verdict"
   | "aldaba.resume"
   | "aldaba.done"
-  | "aldaba.handoff";
+  | "aldaba.handoff"
+  | "aldaba.arbitraje";
 
 /** Abre el escenario. Primer mensaje persistente del canal, siempre. */
 export interface Escenario {
@@ -164,6 +165,23 @@ export interface Done {
   resumen: string;
 }
 
+/**
+ * El arbitro repartio la atencion escasa entre varios agentes.
+ *
+ * Es el unico mensaje del protocolo cuyo contenido lo escribe un modelo. Decide el
+ * orden de la cola, nunca la operacion.
+ */
+export interface Arbitraje {
+  caseId: CaseId;
+  /** Ids de agente, del que se lleva la persona al que espera mas. */
+  orden: AgenteId[];
+  motivo: string;
+  /** Cuantas personas libres habia cuando se decidio. */
+  libres: number;
+  /** `false` cuando el modelo fallo y resolvio la regla de respaldo. */
+  porModelo: boolean;
+}
+
 export type ContenidoPorTipo = {
   "aldaba.escenario": Escenario;
   "aldaba.reason": Reason;
@@ -176,6 +194,7 @@ export type ContenidoPorTipo = {
   "aldaba.resume": Resume;
   "aldaba.done": Done;
   "aldaba.handoff": Handoff;
+  "aldaba.arbitraje": Arbitraje;
 };
 
 export type MensajeAldaba = {
@@ -207,6 +226,7 @@ export const TIPOS_PERSISTENTES: ReadonlySet<TipoMensaje> = new Set<TipoMensaje>
   "aldaba.resume",
   "aldaba.done",
   "aldaba.handoff",
+  "aldaba.arbitraje",
 ]);
 
 export const esPersistente = (tipo: TipoMensaje) => TIPOS_PERSISTENTES.has(tipo);

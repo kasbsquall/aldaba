@@ -22,13 +22,16 @@ export interface Approver {
   };
 }
 
-export const APROBADORES: Approver[] = [
-  {
-    id: "ap_visitante",
-    nombre: "Tú",
-    rol: "Aprobador de turno",
-    kind: "visitante",
-  },
+/**
+ * Los aprobadores automaticos. Los humanos NO estan aqui: entran solos.
+ *
+ * Antes habia un `ap_visitante` fijo y una sala por visitante, asi que dos personas
+ * que abrian la URL a la vez eran el mismo usuario en salas distintas y no se veian.
+ * Eso apagaba justo lo unico que ninguna otra tecnologia da. Ahora la sala es una,
+ * cada navegador trae identidad propia, y la cadena de aprobadores se compone en vivo
+ * con quien esta presente.
+ */
+export const SEMBRADOS: Approver[] = [
   {
     id: "ap_rivas",
     nombre: "M. Rivas",
@@ -49,7 +52,18 @@ export const APROBADORES: Approver[] = [
   },
 ];
 
-export const VISITANTE = APROBADORES[0];
+/** La sala es una sola y publica. Ahi es donde se cruzan los visitantes. */
+export const SALA = "sala";
+
+/** Nombres para los visitantes, en orden de llegada. */
+const NOMBRES = [
+  "Aprobador 1", "Aprobador 2", "Aprobador 3", "Aprobador 4",
+  "Aprobador 5", "Aprobador 6", "Aprobador 7", "Aprobador 8",
+];
+
+export function nombreDeVisitante(indice: number): string {
+  return NOMBRES[indice % NOMBRES.length];
+}
 
 export type Severidad = "alta" | "media";
 

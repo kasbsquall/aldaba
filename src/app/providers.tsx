@@ -15,8 +15,19 @@ import { PortalProvider } from "@portalsdk/react";
 
 let identidadCache: Identidad | null = null;
 
+/** Identidad estable de este navegador. Dos pestañas distintas son dos personas. */
+function miIdentidad(): string {
+  if (typeof window === "undefined") return "";
+  let id = sessionStorage.getItem("aldaba:yo");
+  if (!id) {
+    id = `ap_h${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
+    sessionStorage.setItem("aldaba:yo", id);
+  }
+  return id;
+}
+
 async function traerToken(): Promise<string> {
-  const r = await fetch("/api/portal-token", { credentials: "include" });
+  const r = await fetch(`/api/portal-token?as=${miIdentidad()}`, { credentials: "include" });
   if (!r.ok) throw new Error(`portal-token: HTTP ${r.status}`);
   const { token, identidad } = (await r.json()) as {
     token: string;
@@ -48,7 +59,7 @@ export function Proveedor({
     let vigente = true;
     // El token ya lo pide el cliente por su cuenta; esto solo trae el nombre para
     // poder rotularlo en pantalla.
-    void fetch("/api/portal-token")
+    void fetch(`/api/portal-token?as=${miIdentidad()}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
         if (vigente && d?.identidad) setIdentidad(d.identidad as Identidad);

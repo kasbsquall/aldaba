@@ -4,9 +4,11 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowsClockwise } from "@phosphor-icons/react";
 import { AldabaLogo } from "@/components/marca/Aldaba";
 import { Proveedor, type Identidad } from "@/app/providers";
+import { SALA } from "@/lib/cast";
 import { useSala } from "@/components/sala/useSala";
 import { Contrafactual, usarContrafactual } from "@/components/sala/Contrafactual";
 import {
+  Arbitraje,
   CarrilProtagonista,
   ContadorEscasez,
   Etiqueta,
@@ -20,6 +22,13 @@ import {
  * sin tension, que es justo el momento en que se evalua el proyecto. El id vive en
  * sessionStorage para que recargar caiga en la misma sala y no arranque otra. */
 function usarSesion(): string | null {
+  // Una sola sala publica. Antes era una por visitante, y eso apagaba lo unico que
+  // ninguna otra tecnologia da: que dos personas que abren la URL a la vez se vean,
+  // se cuenten en el mismo roster y compitan por la misma atencion.
+  return SALA;
+}
+
+function _usarSesionAntigua(): string | null {
   // El id se calcula durante el primer render del cliente, no en un efecto.
   //
   // Derivarlo de un efecto lo dejaba en null indefinidamente: el componente
@@ -61,7 +70,8 @@ export default function Sala() {
 }
 
 function Tablero({ sesion, identidad }: { sesion: string | null; identidad: Identidad | null }) {
-  const { tablero, miCarril, decidir, reiniciar } = useSala(sesion, identidad?.id ?? null);
+  const { tablero, miCarril, decidir, reiniciar, ocupado, declararOcupado } =
+    useSala(sesion, identidad?.id ?? null);
 
   const nombreDe = useMemo(() => {
     const mapa = new Map(tablero.aprobadores.map((a) => [a.id, a.nombre]));
@@ -133,6 +143,8 @@ function Tablero({ sesion, identidad }: { sesion: string | null; identidad: Iden
             nadie abre dentro del plazo, escala solo a la siguiente persona.
           </p>
 
+          <Arbitraje arbitraje={tablero.arbitraje} />
+
           {protagonista ? (
             <CarrilProtagonista
               carril={protagonista}
@@ -147,9 +159,14 @@ function Tablero({ sesion, identidad }: { sesion: string | null; identidad: Iden
 
         <aside className="panel surge">
           <section>
-            <Etiqueta>Quién está</Etiqueta>
+            <Etiqueta>Quién está disponible</Etiqueta>
             <div style={{ marginTop: "var(--hueco-2)" }}>
-              <Roster aprobadores={tablero.aprobadores} miId={identidad?.id ?? null} />
+              <Roster
+                aprobadores={tablero.aprobadores}
+                miId={identidad?.id ?? null}
+                ocupado={ocupado}
+                onDeclarar={declararOcupado}
+              />
             </div>
           </section>
 
