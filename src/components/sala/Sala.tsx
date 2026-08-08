@@ -144,23 +144,23 @@ function Tablero({ sesion, identidad }: { sesion: string | null; identidad: Iden
         </button>
       </header>
 
+      <div className="apertura">
+        {/* La cifra y la prosa que la explica viven dentro de la misma losa. Antes
+            eran dos bloques sueltos y el contador flotaba sin nada que lo anclara. */}
+        <section className="losa surge">
+          <ContadorEscasez tablero={tablero} sobreTinta />
+          <p className="prosa-losa">
+            Cinco agentes necesitan una firma humana para seguir. En vez de esperar,
+            cada uno busca quién está libre en este momento y le toca la puerta. Si
+            nadie abre dentro del plazo, escala solo a la siguiente persona.
+          </p>
+        </section>
+
+        <FranjaPlazos tablero={tablero} protagonistaId={protagonista?.id ?? null} />
+      </div>
+
       <main className="sala">
         <div className="columna-principal">
-          <div className="apertura">
-            {/* La cifra y la prosa que la explica viven dentro de la misma losa. Antes
-                eran dos bloques sueltos y el contador flotaba sin nada que lo anclara. */}
-            <section className="losa surge">
-              <ContadorEscasez tablero={tablero} sobreTinta />
-              <p className="prosa-losa">
-                Cinco agentes necesitan una firma humana para seguir. En vez de esperar,
-                cada uno busca quién está libre en este momento y le toca la puerta. Si
-                nadie abre dentro del plazo, escala solo a la siguiente persona.
-              </p>
-            </section>
-
-            <FranjaPlazos tablero={tablero} protagonistaId={protagonista?.id ?? null} />
-          </div>
-
           <div className="tablero">
             <Arbitraje arbitraje={tablero.arbitraje} />
 

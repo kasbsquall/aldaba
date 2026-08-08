@@ -48,3 +48,4 @@ keys/
 .playwright-mcp/
 aldaba-sala-*.png
 marca*.png
+docs/mockups/*.html

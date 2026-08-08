@@ -403,3 +403,13 @@ p {
     padding: var(--hueco-4);
   }
 }
+
+/* La cabecera manda a ancho completo. Dentro de la columna izquierda la franja
+ * repartia sus cinco celdas en 110px cada una y todos los nombres se recortaban,
+ * que era exactamente el fallo que traia el mockup, solo que por otra causa. */
+.apertura {
+  margin-bottom: var(--hueco-6);
+}
+.losa .prosa-losa {
+  max-width: 62ch;
+}
