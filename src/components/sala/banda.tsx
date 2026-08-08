@@ -45,7 +45,10 @@ function Rastro({
         // fallo de carga, y aquí lo cierto es que todavía no ha pasado nada.
         <p className="vacio">Todavía no se ha tocado ninguna puerta en esta sesión.</p>
       ) : (
-        <ul className="rastro-rejilla">
+        <ul
+          className="rastro-rejilla"
+          style={{ "--filas": Math.ceil(rastro.length / 2) } as React.CSSProperties}
+        >
           {rastro.map((e, i) => (
             <li key={`${e.texto}-${i}`} className="rastro-fila" style={{ "--i": Math.min(i, 7) } as React.CSSProperties}>
               <SelloAgente id={e.agente} tam={16} />

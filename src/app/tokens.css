@@ -470,7 +470,7 @@ p {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   column-gap: var(--hueco-6);
   grid-auto-flow: column;
-  grid-template-rows: repeat(6, auto);
+  grid-template-rows: repeat(var(--filas, 6), auto);
 }
 .rastro-fila {
   display: grid;

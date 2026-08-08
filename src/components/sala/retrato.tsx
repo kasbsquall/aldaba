@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { createAvatar } from "@dicebear/core";
-import { notionistsNeutral } from "@dicebear/collection";
+import { personas } from "@dicebear/collection";
 
 /* Retratos de las personas.
  *
@@ -32,11 +32,11 @@ export function Retrato({
 }) {
   const uri = useMemo(
     () =>
-      createAvatar(notionistsNeutral, {
+      createAvatar(personas, {
         seed: nombre,
         size: tam * 2,
         radius: 50,
-        backgroundColor: ["2b2e33"],
+        backgroundColor: ["e6e7ea"],
         scale: 108,
       }).toDataUri(),
     [nombre, tam]
