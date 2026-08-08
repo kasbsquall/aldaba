@@ -252,3 +252,25 @@ p {
   display: grid;
   gap: var(--hueco-12);
 }
+
+
+/* El sello se estampa: entra rotado y con un punto de sobreescala, y asienta. La
+ * rotacion se queda en 2.5 grados. Mas que eso deja de leerse como un sello y pasa
+ * a leerse como un adorno torcido. */
+@keyframes estampar {
+  0% { opacity: 0; transform: rotate(-2.5deg) scale(1.09); }
+  60% { opacity: 1; transform: rotate(-2.5deg) scale(0.99); }
+  100% { opacity: 1; transform: rotate(-2.5deg) scale(1); }
+}
+
+.sello {
+  animation: estampar 200ms var(--curva-entrada) both;
+  transform: rotate(-2.5deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sello {
+    animation: none;
+    transform: rotate(-2.5deg);
+  }
+}

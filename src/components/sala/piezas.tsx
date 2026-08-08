@@ -15,6 +15,13 @@ import {
 } from "@phosphor-icons/react";
 import { useCuentaAtras } from "./useSala";
 import type { AprobadorVista, CarrilVista, Tablero } from "@/lib/tablero";
+import {
+  Filigrana,
+  MarcaAgente,
+  MarcaPersona,
+  PlanoDePuertas,
+  SelloDeActa,
+} from "./identidad";
 
 // Un solo grosor de icono en todo el producto, y un solo tamano base.
 const ICONO = { weight: "light" as const, size: 15 };
@@ -163,11 +170,7 @@ export function Roster({
             } as React.CSSProperties
           }
         >
-          {a.conectado ? (
-            <UserCircle {...ICONO} aria-hidden />
-          ) : (
-            <UserCircleDashed {...ICONO} aria-hidden />
-          )}
+          <MarcaPersona nombre={a.nombre} tam={24} atenuada={!a.conectado} />
           <span style={{ fontSize: "var(--paso-0)", fontWeight: a.id === miId ? 600 : 400 }}>
             {a.nombre}
           </span>
@@ -324,8 +327,8 @@ export function FilaCarril({
         {
           "--i": Math.min(indice, 7),
           display: "grid",
-          gridTemplateColumns: "1fr auto",
-          gap: "var(--hueco-2)",
+          gridTemplateColumns: "auto 1fr auto",
+          gap: "var(--hueco-3)",
           alignItems: "center",
           minHeight: "var(--fila-alto)",
           padding: "var(--hueco-2) 0",
@@ -335,6 +338,13 @@ export function FilaCarril({
         } as React.CSSProperties
       }
     >
+      <MarcaAgente
+        id={carril.id}
+        nombre={carril.nombre}
+        tam={24}
+        alta={!cerrado && carril.estado === "esperando"}
+      />
+
       <div style={{ minWidth: 0 }}>
         <div
           style={{
@@ -361,7 +371,22 @@ export function FilaCarril({
           <span>{leyendaEstado(carril, nombreDe)}</span>
         </div>
       </div>
-      <Reloj deadline={carril.deadline} />
+      <div style={{ display: "grid", justifyItems: "end", gap: 4 }}>
+        <Reloj deadline={carril.deadline} />
+        {carril.cadena.length > 0 ? (
+          <PlanoDePuertas cadena={carril.cadena} tam={9} />
+        ) : carril.deadline == null ? (
+          // Regla dibujada, no un guion: un caracter se leeria como signo menos.
+          <span
+            aria-hidden
+            style={{
+              width: 14,
+              height: 1,
+              background: "color-mix(in oklch, var(--hueso-900) 40%, transparent)",
+            }}
+          />
+        ) : null}
+      </div>
     </li>
   );
 }
@@ -418,10 +443,16 @@ export function CarrilProtagonista({
         borderRadius: "var(--radio)",
         boxShadow: "var(--sombra-alta)",
         padding: "var(--hueco-6)",
+        position: "relative",
+        overflow: "hidden",
       }}
     >
+      <Filigrana />
+
       <header
         style={{
+          position: "relative",
+          zIndex: 1,
           display: "flex",
           alignItems: "flex-start",
           justifyContent: "space-between",
@@ -429,20 +460,28 @@ export function CarrilProtagonista({
           marginBottom: "var(--hueco-4)",
         }}
       >
-        <div>
-          <div
-            style={{
-              fontSize: "var(--paso--1)",
-              letterSpacing: "0.14em",
-              textTransform: "uppercase",
-              color: "var(--tinta-tenue)",
-            }}
-          >
-            {carril.nombre}
+        <div style={{ display: "flex", gap: "var(--hueco-3)", alignItems: "flex-start" }}>
+          <MarcaAgente
+            id={carril.id}
+            nombre={carril.nombre}
+            tam={44}
+            alta={carril.estado === "esperando"}
+          />
+          <div>
+            <div
+              style={{
+                fontSize: "var(--paso--1)",
+                letterSpacing: "0.14em",
+                textTransform: "uppercase",
+                color: "var(--tinta-tenue)",
+              }}
+            >
+              {carril.nombre}
+            </div>
+            <h2 style={{ fontSize: "var(--paso-3)", marginTop: "var(--hueco-1)" }}>
+              {carril.operacion}
+            </h2>
           </div>
-          <h2 style={{ fontSize: "var(--paso-3)", marginTop: "var(--hueco-1)" }}>
-            {carril.operacion}
-          </h2>
         </div>
         <Reloj deadline={carril.deadline} grande />
       </header>
@@ -450,6 +489,8 @@ export function CarrilProtagonista({
       {u && (
         <dl
           style={{
+            position: "relative",
+            zIndex: 1,
             display: "grid",
             gridTemplateColumns: "repeat(auto-fit, minmax(9rem, 1fr))",
             gap: "var(--hueco-4)",
@@ -470,7 +511,7 @@ export function CarrilProtagonista({
       )}
 
       {/* El razonamiento. Lo unico que se mueve en pantalla. */}
-      <div style={{ margin: "var(--hueco-4) 0" }}>
+      <div style={{ margin: "var(--hueco-4) 0", position: "relative", zIndex: 1 }}>
         <Etiqueta>
           <Lightning {...ICONO} aria-hidden /> Razonamiento del agente
         </Etiqueta>
@@ -513,7 +554,15 @@ export function CarrilProtagonista({
       <Cadena carril={carril} nombreDe={nombreDe} />
 
       {esMio ? (
-        <div style={{ display: "flex", gap: "var(--hueco-2)", marginTop: "var(--hueco-6)" }}>
+        <div
+          style={{
+            display: "flex",
+            gap: "var(--hueco-2)",
+            marginTop: "var(--hueco-6)",
+            position: "relative",
+            zIndex: 1,
+          }}
+        >
           <Boton principal onClick={() => onDecidir("aprobado")}>
             <Check {...ICONO} aria-hidden /> Firmar y liberar
           </Boton>
@@ -522,17 +571,35 @@ export function CarrilProtagonista({
           </Boton>
         </div>
       ) : (
+        <>
+        <div style={{ marginTop: "var(--hueco-6)", position: "relative", zIndex: 1 }}>
+          {carril.cierre ? (
+            <SelloDeActa
+              firme={carril.cierre.desenlace === "completado"}
+              texto={
+                carril.cierre.desenlace === "retenido"
+                  ? "retenida · nadie abrió"
+                  : `${carril.estado === "aprobado" ? "firmada" : "rechazada"} · ${nombreDe(
+                      carril.veredicto?.aprobador ?? ""
+                    )}`
+              }
+            />
+          ) : null}
+        </div>
         <p
           style={{
-            marginTop: "var(--hueco-6)",
+            marginTop: "var(--hueco-3)",
             fontSize: "var(--paso-0)",
             color: "var(--tinta-tenue)",
+            position: "relative",
+            zIndex: 1,
           }}
         >
           {carril.estado === "esperando"
             ? `Le toca a ${nombreDe(carril.tocandoA ?? "")}. Si no abre en el plazo, el agente busca a la siguiente persona disponible.`
             : carril.cierre?.resumen ?? "El agente sigue trabajando."}
         </p>
+        </>
       )}
     </article>
   );
@@ -542,10 +609,16 @@ export function CarrilProtagonista({
 function Cadena({ carril, nombreDe }: { carril: CarrilVista; nombreDe: (id: string) => string }) {
   if (carril.cadena.length === 0) return null;
 
+  const seg = carril.deadline == null ? null : Math.ceil((carril.deadline - Date.now()) / 1000);
+  const apremia = seg != null && seg > 0 && seg <= 6;
+
   return (
-    <div>
+    <div style={{ position: "relative", zIndex: 1 }}>
       <Etiqueta>
         <Clock {...ICONO} aria-hidden /> Puertas tocadas
+        <span style={{ marginLeft: "var(--hueco-2)" }}>
+          <PlanoDePuertas cadena={carril.cadena} apremia={apremia} tam={12} />
+        </span>
       </Etiqueta>
       <ol
         style={{
