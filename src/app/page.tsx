@@ -1,69 +1,155 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useEffect, useMemo, useState } from "react";
+import { ArrowsClockwise } from "@phosphor-icons/react";
+import { AldabaLogo } from "@/components/marca/Aldaba";
+import { Proveedor, type Identidad } from "./providers";
+import { useSala } from "@/components/sala/useSala";
+import {
+  CarrilProtagonista,
+  ContadorEscasez,
+  Etiqueta,
+  FilaCarril,
+  Roster,
+} from "@/components/sala/piezas";
+
+/* Una sala por visitante, nunca un tablero global compartido.
+ *
+ * Con una sala unica, el segundo jurado que abre la URL encuentra todo resuelto y
+ * sin tension, que es justo el momento en que se evalua el proyecto. El id vive en
+ * sessionStorage para que recargar caiga en la misma sala y no arranque otra. */
+function usarSesion(): string | null {
+  const [id, setId] = useState<string | null>(null);
+  useEffect(() => {
+    const previo = sessionStorage.getItem("aldaba:sesion");
+    if (previo) return setId(previo);
+    const nuevo = `s${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+    sessionStorage.setItem("aldaba:sesion", nuevo);
+    setId(nuevo);
+  }, []);
+  return id;
+}
+
+export default function Pagina() {
+  const sesion = usarSesion();
+  if (!sesion) return null;
+  return <Proveedor>{(identidad) => <Sala sesion={sesion} identidad={identidad} />}</Proveedor>;
+}
+
+function Sala({ sesion, identidad }: { sesion: string; identidad: Identidad | null }) {
+  const { tablero, miCarril, decidir, reiniciar } = useSala(sesion, identidad?.id ?? null);
+
+  const nombreDe = useMemo(() => {
+    const mapa = new Map(tablero.aprobadores.map((a) => [a.id, a.nombre]));
+    return (id: string) => mapa.get(id) ?? id;
+  }, [tablero.aprobadores]);
+
+  // El carril protagonista es el que le toca decidir a esta persona. Si no le toca
+  // ninguno, sube el mas urgente, para que el bloque principal nunca quede vacio.
+  const protagonista = useMemo(() => {
+    if (miCarril) return tablero.carriles.find((c) => c.id === miCarril) ?? null;
+    const esperando = tablero.carriles
+      .filter((c) => c.estado === "esperando" && c.deadline != null)
+      .sort((a, b) => (a.deadline ?? 0) - (b.deadline ?? 0));
+    return esperando[0] ?? tablero.carriles[0] ?? null;
+  }, [tablero.carriles, miCarril]);
+
+  const secundarios = tablero.carriles.filter((c) => c.id !== protagonista?.id);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
+    <div style={{ minHeight: "100dvh", padding: "var(--hueco-8) var(--hueco-8) var(--hueco-16)" }}>
+      <header
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: "var(--hueco-4)",
+          paddingBottom: "var(--hueco-6)",
+          borderBottom: "1px solid var(--linea)",
+        }}
+      >
+        <AldabaLogo />
+        <button
+          type="button"
+          onClick={() => void reiniciar()}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "var(--hueco-1)",
+            minHeight: "2.75rem",
+            padding: "0 var(--hueco-3)",
+            background: "transparent",
+            border: "1px solid var(--linea-fuerte)",
+            borderRadius: "var(--radio)",
+            color: "var(--tinta-media)",
+            font: "inherit",
+            fontSize: "var(--paso--1)",
+            cursor: "pointer",
+          }}
+        >
+          <ArrowsClockwise size={14} weight="light" aria-hidden />
+          Reiniciar escenario
+        </button>
+      </header>
+
+      <main
+        style={{
+          display: "grid",
+          gridTemplateColumns: "minmax(0, 1fr) var(--panel-ancho-menor)",
+          gap: "var(--hueco-12)",
+          alignItems: "start",
+          paddingTop: "var(--hueco-12)",
+        }}
+      >
+        <div style={{ display: "grid", gap: "var(--hueco-8)" }}>
+          <ContadorEscasez tablero={tablero} />
+
+          {protagonista ? (
+            <CarrilProtagonista
+              carril={protagonista}
+              esMio={protagonista.id === miCarril}
+              nombreDe={nombreDe}
+              onDecidir={(d) => void decidir(protagonista.id, d)}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          ) : (
+            <Esqueleto />
+          )}
         </div>
+
+        <aside style={{ display: "grid", gap: "var(--hueco-8)" }} className="surge">
+          <section>
+            <Etiqueta>Quién está</Etiqueta>
+            <div style={{ marginTop: "var(--hueco-2)" }}>
+              <Roster aprobadores={tablero.aprobadores} miId={identidad?.id ?? null} />
+            </div>
+          </section>
+
+          <section>
+            <Etiqueta>Otras operaciones</Etiqueta>
+            <ul style={{ listStyle: "none", padding: 0, margin: "var(--hueco-2) 0 0" }}>
+              {secundarios.map((c, i) => (
+                <FilaCarril key={c.id} carril={c} indice={i} nombreDe={nombreDe} />
+              ))}
+            </ul>
+          </section>
+        </aside>
       </main>
     </div>
+  );
+}
+
+/* Esqueleto mientras carga. Nunca se pinta un valor por defecto: un contador en cero
+ * durante el fetch afirma algo falso sobre el dato. */
+function Esqueleto() {
+  return (
+    <div
+      aria-busy="true"
+      style={{
+        height: "18rem",
+        border: "1px solid var(--linea)",
+        borderRadius: "var(--radio)",
+        background: "var(--fondo-hundido)",
+      }}
+    />
   );
 }

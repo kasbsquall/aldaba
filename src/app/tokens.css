@@ -185,3 +185,13 @@ p {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* El golpe de la aldaba. El anillo cae contra la placa y rebota una vez, como haria
+ * un llamador de bronce. Solo transform, y cubierto por prefers-reduced-motion. */
+@keyframes golpe {
+  0% { transform: rotate(0deg); }
+  22% { transform: rotate(-15deg); }
+  48% { transform: rotate(6deg); }
+  70% { transform: rotate(-3deg); }
+  100% { transform: rotate(0deg); }
+}
