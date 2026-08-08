@@ -182,44 +182,15 @@ export function Roster({
               textAlign: "right",
             }}
           >
-            {a.id === miId && onDeclarar ? (
-              <>
-                {a.atendiendo ? (
-                  <span style={{ marginRight: "var(--hueco-2)" }}>atendiendo</span>
-                ) : null}
-              <button
-                type="button"
-                onClick={() => onDeclarar(!ocupado)}
-                aria-pressed={Boolean(ocupado)}
-                title="Cambia tu disponibilidad. Los agentes lo leen al instante."
-                style={{
-                  font: "inherit",
-                  fontSize: "var(--paso--1)",
-                  cursor: "pointer",
-                  minHeight: "2rem",
-                  padding: "var(--hueco-1) var(--hueco-3)",
-                  borderRadius: "var(--radio)",
-                  border: `1px solid ${ocupado ? "transparent" : "var(--linea-fuerte)"}`,
-                  background: ocupado ? "var(--tinta)" : "transparent",
-                  color: ocupado ? "var(--fondo-elevado)" : "var(--tinta-media)",
-                  transition: "background var(--dur-micro), color var(--dur-micro)",
-                }}
-              >
-                {ocupado ? "ocupado · volver" : "marcarme ocupado"}
-              </button>
-              </>
-            ) : (
-              <>
-                {a.ocupado
-                  ? "ocupado"
-                  : a.atendiendo
-                    ? "atendiendo"
-                    : a.conectado
-                      ? "libre"
-                      : "ausente"}
-                {a.sembrado ? " · agente" : ""}
-              </>
-            )}
+            {a.ocupado
+              ? "ocupado"
+              : a.atendiendo
+                ? "atendiendo"
+                : a.conectado
+                  ? "libre"
+                  : "ausente"}
+            {a.sembrado ? " · agente" : ""}
+            {a.id === miId ? " · tú" : ""}
           </span>
         </li>
       ))}

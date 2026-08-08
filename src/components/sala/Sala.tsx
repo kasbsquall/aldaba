@@ -70,8 +70,7 @@ export default function Sala() {
 }
 
 function Tablero({ sesion, identidad }: { sesion: string | null; identidad: Identidad | null }) {
-  const { tablero, miCarril, decidir, reiniciar, ocupado, declararOcupado } =
-    useSala(sesion, identidad?.id ?? null);
+  const { tablero, miCarril, decidir, reiniciar } = useSala(sesion, identidad?.id ?? null);
 
   const nombreDe = useMemo(() => {
     const mapa = new Map(tablero.aprobadores.map((a) => [a.id, a.nombre]));
@@ -165,12 +164,7 @@ function Tablero({ sesion, identidad }: { sesion: string | null; identidad: Iden
           <section>
             <Etiqueta>Quién está disponible</Etiqueta>
             <div style={{ marginTop: "var(--hueco-2)" }}>
-              <Roster
-                aprobadores={tablero.aprobadores}
-                miId={identidad?.id ?? null}
-                ocupado={ocupado}
-                onDeclarar={declararOcupado}
-              />
+              <Roster aprobadores={tablero.aprobadores} miId={identidad?.id ?? null} />
             </div>
           </section>
 
