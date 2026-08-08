@@ -53,6 +53,8 @@ export class Sesion {
   private dadosDeAlta = new Set<string>();
   /** Evita llamar al arbitro en cada toque durante el mismo episodio. */
   private arbitrando = false;
+  private ultimoArbitraje: { motivo: string; libres: number; porModelo: boolean } | null =
+    null;
   /** Cuantos relevos lleva la sala. Alimenta la variacion de las operaciones. */
   private vueltas = 0;
   private temporizadores: ReturnType<typeof setTimeout>[] = [];
@@ -385,8 +387,12 @@ export class Sesion {
         congeladoSeg: Math.round((ahora - (c.bloqueadoEn ?? ahora)) / 1000),
       }));
       void arbitrar(disputa, libres)
-        .then((a) =>
-          this.publicar({
+        .then((a) => {
+          // El ultimo reparto se guarda: el jurado abre la URL a mitad de partida y
+          // sin esto la caja del arbitraje le sale vacia hasta el siguiente episodio,
+          // que puede tardar. Es la pieza que explica por que la cola esta como esta.
+          this.ultimoArbitraje = { motivo: a.motivo, libres, porModelo: a.porModelo };
+          return this.publicar({
             type: "aldaba.arbitraje",
             content: {
               caseId: this.sesionId,
@@ -395,8 +401,8 @@ export class Sesion {
               libres,
               porModelo: a.porModelo,
             },
-          })
-        )
+          });
+        })
         .catch(() => {})
         .finally(() => {
           // Un episodio de arbitraje por ventana, para no llamar al modelo en cada toque.
@@ -611,7 +617,7 @@ export class Sesion {
   instantanea() {
     return {
       arrancado: true,
-      arbitraje: null,
+      arbitraje: this.ultimoArbitraje,
       aprobadores: this.rosterVivo(),
       carriles: [...this.carriles.values()].map((c) => ({
         id: c.spec.id,

@@ -156,6 +156,9 @@ export async function arbitrar(
       return porRegla(disputa);
     }
 
+    // Un arbitro que siempre cae a la regla parece un arbitro que funciona. El exito
+    // tambien deja rastro, o no hay forma de distinguir los dos casos en produccion.
+    console.log("[aldaba] arbitro: resuelto por el modelo ·", salida.motivo.slice(0, 90));
     return { orden, motivo: salida.motivo.slice(0, 160), porModelo: true };
   } catch (e) {
     // Sin rastro, un arbitro que siempre cae a la regla parece un arbitro que
