@@ -1,36 +1,43 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Aldaba
 
-## Getting Started
+El agente que toca puertas hasta que alguien abre.
 
-First, run the development server:
+Construido para The Realtime Hackathon by Portal x Crafter Station, del 7 al 9 de
+agosto de 2026.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## El problema
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Los agentes de IA se congelan esperando aprobación humana. El patrón de humano en el
+ciclo ya está resuelto y es estándar: LangChain trae `HumanInTheLoopMiddleware`, existe
+HumanLayer para enrutar aprobaciones a Slack. Todas comparten el mismo defecto. Agregar
+una interrupción introduce latencia sin cota: un grafo autónomo termina en segundos, uno
+con compuerta humana puede quedarse congelado horas.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Ninguna de esas herramientas puede resolverlo, porque ninguna sabe quién está disponible
+en este momento. LangGraph no tiene concepto de presencia. HumanLayer manda un mensaje y
+confía.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Qué hace Aldaba
 
-## Learn More
+Invierte la espera. El agente sale a buscar.
 
-To learn more about Next.js, take a look at the following resources:
+1. Transmite su razonamiento en vivo por un canal de Portal.
+2. Lee `room.presence` para saber quién de la cadena de aprobadores está conectado
+   ahora mismo, no quién debería estar según un calendario.
+3. Toca esa puerta por el inbox de Portal, que llega aunque esa persona no esté en el
+   canal donde el agente trabaja.
+4. Si no le abren dentro del plazo, escala a la siguiente. El reloj es visible.
+5. Cuando alguien decide, el agente reanuda al instante.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Varios agentes trabajan en paralelo y compiten por las pocas personas conectadas. La
+atención humana es el recurso escaso, y la pantalla lo muestra.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Estado
 
-## Deploy on Vercel
+En construcción. Ver [docs/00-decisiones-portal.md](docs/00-decisiones-portal.md) para
+las decisiones de arquitectura y [docs/01-vocabulario-mensajes.md](docs/01-vocabulario-mensajes.md)
+para el protocolo de mensajes sobre Portal.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Licencia
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT

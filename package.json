@@ -9,11 +9,17 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@phosphor-icons/react": "^2.1.10",
+    "@portalsdk/config": "^0.2.1",
+    "@portalsdk/core": "^0.1.5",
+    "@portalsdk/react": "^0.1.4",
+    "jose": "^6.2.8",
     "next": "16.3.0",
     "react": "19.2.8",
     "react-dom": "19.2.8"
   },
   "devDependencies": {
+    "@portalsdk/cli": "^0.5.5",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
