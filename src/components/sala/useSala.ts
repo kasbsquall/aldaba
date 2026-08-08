@@ -162,5 +162,9 @@ export function useCuentaAtras(deadline: number | null): number | null {
   }, [deadline]);
 
   if (deadline == null) return null;
-  return Math.max(0, Math.ceil((deadline - ahora) / 1000));
+  const seg = Math.ceil((deadline - ahora) / 1000);
+  // Vencido es un estado, no un cero. Un reloj clavado en 00s se queda gritando en
+  // rojo para siempre, y con cinco carriles a la vez el acento deja de significar
+  // "queda poco tiempo" y pasa a ser ruido de fondo.
+  return seg > 0 ? seg : null;
 }

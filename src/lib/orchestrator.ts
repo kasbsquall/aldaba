@@ -328,8 +328,15 @@ export class Sesion {
       return this.ocupados.has(id) ? 2 : 3;
     };
 
+    // Quien ya esta atendiendo otro carril queda fuera, sin excepcion.
+    //
+    // Antes era una preferencia de orden, asi que un ocupado siempre ganaba a un
+    // ausente y se le volvia a tocar: tres filas decian "tocando a la misma persona"
+    // y solo una era accionable. Una persona atiende una cosa a la vez, y si eso
+    // deja al carril sin nadie, espera. Esperar es honesto; repartir la misma
+    // persona entre tres puertas contradice la premisa del producto.
     const candidatos = cadena
-      .filter((a) => !carril.tocados.has(a.id))
+      .filter((a) => !carril.tocados.has(a.id) && !this.ocupados.has(a.id))
       .sort((a, b) => rango(b.id) - rango(a.id));
     const elegido = candidatos[0] ?? null;
 

@@ -197,7 +197,7 @@ export function Roster({
                   transition: "background var(--dur-micro), color var(--dur-micro)",
                 }}
               >
-                {ocupado ? "estoy ocupado" : "estoy libre"}
+                {ocupado ? "ocupado · volver" : "marcarme ocupado"}
               </button>
             ) : (
               <>
@@ -280,10 +280,8 @@ export function Arbitraje({
       >
         <Scales {...ICONO} aria-hidden />
         {arbitraje.porModelo ? "Reparto decidido por el modelo" : "Reparto por regla"}
-        <span style={{ marginLeft: "auto", textTransform: "none", letterSpacing: 0 }}>
-          <span className="dato">{arbitraje.libres}</span> libre
-          {arbitraje.libres === 1 ? "" : "s"}
-        </span>
+        {/* El conteo de libres ya vive en el contador de arriba. Repetirlo aqui solo
+            crea dos numeros sobre lo mismo que se desincronizan entre si. */}
       </div>
       <p
         style={{
@@ -380,8 +378,12 @@ function leyendaEstado(c: CarrilVista, nombreDe: (id: string) => string): string
   if (c.estado === "aprobado") return `firmada por ${quien(c.veredicto?.aprobador)}`;
   if (c.estado === "rechazado") return `rechazada por ${quien(c.veredicto?.aprobador)}`;
   if (c.estado === "retenido") return "nadie abrió · retenida";
-  if (c.estado === "esperando" && c.tocandoA)
-    return `tocando a ${nombreDe(c.tocandoA)} · puerta ${c.intento}`;
+  if (c.estado === "esperando" && c.tocandoA) {
+    const vencio = c.deadline != null && c.deadline <= Date.now();
+    return vencio
+      ? `${nombreDe(c.tocandoA)} no respondió · buscando a otra persona`
+      : `tocando a ${nombreDe(c.tocandoA)} · puerta ${c.intento}`;
+  }
   if (c.estado === "esperando") return "buscando quién está disponible";
   return "evaluando la operación";
 }
