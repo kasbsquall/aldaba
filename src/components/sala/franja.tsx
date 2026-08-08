@@ -63,7 +63,7 @@ function Celda({
           style={{
             flex: 1,
             minWidth: 0,
-            fontSize: "var(--paso--2)",
+            fontSize: "var(--paso--1)",
             letterSpacing: "0.14em",
             textTransform: "uppercase",
             color: "var(--tinta-media)",
@@ -78,7 +78,7 @@ function Celda({
           className="cifras"
           style={{
             fontSize: "var(--paso--1)",
-            color: corre ? "var(--acento)" : "var(--tinta-tenue)",
+            color: corre ? "var(--urgente)" : "var(--tinta-tenue)",
           }}
         >
           {corre ? `${String(seg).padStart(2, "0")}s` : "—"}
@@ -101,7 +101,7 @@ function Celda({
             width: "100%",
             transformOrigin: "left",
             transform: `scaleX(${proporcion})`,
-            background: corre ? "var(--acento)" : "transparent",
+            background: corre ? "var(--urgente)" : "transparent",
             transition: "transform 1s linear",
           }}
         />
@@ -149,7 +149,7 @@ export function FranjaPlazos({
       >
         <span
           style={{
-            fontSize: "var(--paso--2)",
+            fontSize: "var(--paso--1)",
             letterSpacing: "0.17em",
             textTransform: "uppercase",
             color: "var(--tinta-tenue)",
@@ -159,7 +159,7 @@ export function FranjaPlazos({
         </span>
         {/* El umbral que gobierna la barra, visible en la interfaz y no solo en el
             codigo: sin esto una barra a media asta no significa nada. */}
-        <span className="cifras" style={{ fontSize: "var(--paso--2)", color: "var(--tinta-tenue)" }}>
+        <span className="cifras" style={{ fontSize: "var(--paso--1)", color: "var(--tinta-tenue)" }}>
           0s — {ANCHO_MAX_SEG}s
         </span>
       </div>

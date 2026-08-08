@@ -10,6 +10,7 @@ import { Contrafactual, usarContrafactual } from "@/components/sala/Contrafactua
 import { AvisoDeToque } from "@/components/sala/aviso";
 import { useReordenar } from "@/components/sala/reordenar";
 import { FranjaPlazos } from "@/components/sala/franja";
+import { BandaHistorica } from "@/components/sala/banda";
 import {
   Arbitraje,
   CarrilProtagonista,
@@ -215,6 +216,8 @@ function Tablero({ sesion, identidad }: { sesion: string | null; identidad: Iden
           </section>
         </aside>
       </main>
+
+      <BandaHistorica tablero={tablero} />
     </div>
   );
 }

@@ -421,3 +421,96 @@ p {
   padding: var(--hueco-4) var(--hueco-6) var(--hueco-6);
   align-items: center;
 }
+
+/* ── La banda historica ──────────────────────────────────────────────────── */
+.banda {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: var(--hueco-8);
+  margin-top: var(--hueco-8);
+  padding-top: var(--hueco-4);
+  border-top: 1px solid var(--linea);
+}
+.banda .rotulo {
+  display: block;
+  font-size: var(--paso--1);
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+  color: var(--tinta-tenue);
+  margin-bottom: var(--hueco-3);
+}
+.banda .vacio {
+  margin: 0;
+  font-size: var(--paso--1);
+  color: var(--tinta-tenue);
+}
+/* Dos columnas: doce eventos en una sola columna estiran la pagina el doble de lo
+ * que aporta. El orden es por columna llena, no en zigzag. */
+.rastro-rejilla {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  columns: 2;
+  column-gap: var(--hueco-6);
+}
+.rastro-fila {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--hueco-2);
+  padding: var(--hueco-2) 0;
+  border-bottom: 1px solid var(--linea);
+  break-inside: avoid;
+  font-size: var(--paso--1);
+  animation: surgir var(--dur-bloque) var(--curva-entrada) backwards;
+  animation-delay: calc(var(--i) * 30ms);
+}
+.rastro-texto {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--tinta-media);
+}
+.histo {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  align-items: end;
+  gap: var(--hueco-2);
+  height: 5.5rem;
+  margin-bottom: var(--hueco-3);
+}
+.histo-col {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  align-items: end;
+  height: 100%;
+  gap: 4px;
+}
+.histo-n {
+  font-size: var(--paso--1);
+  color: var(--tinta-tenue);
+  text-align: center;
+}
+.histo-barra {
+  width: 100%;
+  align-self: end;
+  transform-origin: bottom;
+  animation: crecerBarra 320ms var(--curva-entrada) backwards;
+}
+.histo-eje {
+  font-size: var(--paso--1);
+  color: var(--tinta-tenue);
+  text-align: center;
+}
+@keyframes crecerBarra {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+@media (max-width: 900px) {
+  .banda { grid-template-columns: 1fr; gap: var(--hueco-6); }
+  .rastro-rejilla { columns: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .histo-barra, .rastro-fila { animation: none; }
+}

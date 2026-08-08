@@ -65,6 +65,23 @@ export interface Tablero {
   aprobadores: AprobadorVista[];
   /** El ultimo reparto de atencion decidido por el arbitro. */
   arbitraje: { motivo: string; libres: number; porModelo: boolean } | null;
+  /**
+   * Rastro de lo que ha pasado, del mas reciente al mas antiguo.
+   *
+   * No se guarda en el servidor: se acumula reduciendo los mismos mensajes que ya
+   * pintan el tablero. El orden del canal ES el orden de los hechos, asi que no hace
+   * falta sello de tiempo propio ni un reloj local que se desincronice.
+   */
+  rastro: {
+    agente: string;
+    clase: "toque" | "vencio" | "firma" | "retenida";
+    texto: string;
+    /** Id del aprobador. El nombre se resuelve al pintar, nunca se guarda un id ya
+     *  convertido en texto: si la persona cambia de nombre el rastro mentiria. */
+    quien?: string;
+  }[];
+  /** Milisegundos que tardo cada firma en llegar. Solo firmas reales. */
+  firmas: number[];
 }
 
 export const tableroVacio: Tablero = {
@@ -72,6 +89,8 @@ export const tableroVacio: Tablero = {
   carriles: [],
   aprobadores: [],
   arbitraje: null,
+  rastro: [],
+  firmas: [],
 };
 
 interface MensajeEntrante {
@@ -201,6 +220,15 @@ export function reducir(previo: Tablero, m: MensajeEntrante): Tablero {
       const marcado = aprobadores.map((a) =>
         a.id === c.to ? { ...a, atendiendo: c.agente, conectado: c.estabaConectado || a.conectado } : a
       );
+      const rastroToque = [
+        {
+          agente: c.agente,
+          clase: "toque" as const,
+          texto: `Puerta ${c.intento}`,
+          quien: c.to,
+        },
+        ...previo.rastro,
+      ].slice(0, 12);
       carriles[i] = {
         ...carriles[i],
         estado: "esperando",
@@ -225,6 +253,10 @@ export function reducir(previo: Tablero, m: MensajeEntrante): Tablero {
       carriles[i] = { ...carriles[i], cadena, deadline: null, tocandoA: null };
       return {
         ...previo,
+        rastro: [
+          { agente: c.agente, clase: "vencio" as const, texto: `Puerta ${c.intento} venció`, quien: c.aprobador },
+          ...previo.rastro,
+        ].slice(0, 12),
         carriles,
         aprobadores: aprobadores.map((a) =>
           a.id === c.aprobador ? { ...a, atendiendo: null } : a
@@ -245,6 +277,20 @@ export function reducir(previo: Tablero, m: MensajeEntrante): Tablero {
       };
       return {
         ...previo,
+        rastro: [
+          {
+            agente: c.agente,
+            clase: "firma" as const,
+            texto: c.decision === "aprobado" ? "Firmada" : "Rechazada",
+            quien: c.aprobador,
+          },
+          ...previo.rastro,
+        ].slice(0, 12),
+        // Solo las aprobadas: un rechazo mide otra cosa y mezclarlos falsea la mediana.
+        firmas:
+          c.decision === "aprobado" && c.transcurridoMs > 0
+            ? [...previo.firmas, c.transcurridoMs].slice(-40)
+            : previo.firmas,
         carriles,
         aprobadores: aprobadores.map((a) =>
           a.id === c.aprobador ? { ...a, atendiendo: null } : a
