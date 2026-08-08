@@ -24,6 +24,7 @@ import {
 } from "./identidad";
 import { SelloAgente } from "./sellos";
 import { Retrato } from "./retrato";
+import { CifraViva } from "./aviso";
 
 // Un solo grosor de icono en todo el producto, y un solo tamano base.
 const ICONO = { weight: "light" as const, size: 15 };
@@ -125,7 +126,7 @@ function Cifra({
           transition: "color var(--dur-ui) var(--curva-entrada)",
         }}
       >
-        {valor}
+        <CifraViva valor={valor} />
       </div>
       <div
         style={{
@@ -172,7 +173,13 @@ export function Roster({
             } as React.CSSProperties
           }
         >
-          <Retrato nombre={a.nombre} tam={30} atenuado={!a.conectado} />
+          <span
+            key={`${a.id}-${a.atendiendo ?? "libre"}`}
+            className={a.atendiendo ? "encendido" : undefined}
+            style={{ display: "inline-flex", borderRadius: "50%" }}
+          >
+            <Retrato nombre={a.nombre} tam={30} atenuado={!a.conectado} />
+          </span>
           <span style={{ fontSize: "var(--paso-0)", fontWeight: a.id === miId ? 600 : 400 }}>
             {a.nombre}
           </span>
@@ -311,11 +318,9 @@ export function FilaCarril({
         } as React.CSSProperties
       }
     >
-      <SelloAgente
-        id={carril.id}
-        tam={26}
-        alta={!cerrado && carril.estado === "esperando"}
-      />
+      <span className={!cerrado && carril.estado === "esperando" ? "respira" : undefined}>
+        <SelloAgente id={carril.id} tam={26} alta={!cerrado && carril.estado === "esperando"} />
+      </span>
 
       <div style={{ minWidth: 0 }}>
         <div
@@ -433,7 +438,9 @@ export function CarrilProtagonista({
         }}
       >
         <div style={{ display: "flex", gap: "var(--hueco-3)", alignItems: "flex-start" }}>
-          <SelloAgente id={carril.id} tam={48} alta={carril.estado === "esperando"} />
+          <span className={carril.estado === "esperando" ? "respira" : undefined}>
+            <SelloAgente id={carril.id} tam={48} alta={carril.estado === "esperando"} />
+          </span>
           <div>
             <div
               style={{

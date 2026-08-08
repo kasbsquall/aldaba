@@ -7,6 +7,7 @@ import { Proveedor, type Identidad } from "@/app/providers";
 import { SALA } from "@/lib/cast";
 import { useSala } from "@/components/sala/useSala";
 import { Contrafactual, usarContrafactual } from "@/components/sala/Contrafactual";
+import { AvisoDeToque } from "@/components/sala/aviso";
 import {
   Arbitraje,
   CarrilProtagonista,
@@ -91,6 +92,10 @@ function Tablero({ sesion, identidad }: { sesion: string | null; identidad: Iden
 
   return (
     <div className="pagina">
+      <AvisoDeToque
+        carril={miCarril}
+        operacion={tablero.carriles.find((c) => c.id === miCarril)?.operacion ?? null}
+      />
       <header
         style={{
           display: "flex",

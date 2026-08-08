@@ -274,3 +274,72 @@ p {
     transform: rotate(-2.5deg);
   }
 }
+
+/* ── Coreografía del tiempo real ──────────────────────────────────────────────
+ * Lo que se mueve tiene que significar algo. Estas tres son las unicas de la
+ * pantalla y cada una marca un evento real: te tocan la puerta, un agente lleva
+ * esperando, una cifra cambio. */
+
+/* El latido del agente que espera firma. Muy contenido: es una respiracion, no un
+ * parpadeo. Un elemento que parpadea se ignora en diez segundos; uno que respira se
+ * sigue notando al minuto. */
+@keyframes respirar {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.045); opacity: 0.86; }
+}
+
+.respira {
+  animation: respirar 2.4s ease-in-out infinite;
+}
+
+/* El aviso que entra cuando te toca a ti. Desde abajo y con opacidad, nunca desde
+ * scale(0), que se lee como globo de dibujos animados. */
+@keyframes entrarAviso {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes salirAviso {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: translateY(6px); }
+}
+
+.aviso {
+  animation: entrarAviso 260ms var(--curva-entrada) both;
+}
+
+.aviso-sale {
+  /* La salida va un 20% mas rapida que la entrada. */
+  animation: salirAviso 200ms var(--curva-entrada) both;
+}
+
+/* Una cifra que cambia sube y la nueva entra por abajo, como un contador mecanico.
+ * Un numero que se sustituye de golpe no comunica que cambio; uno que rueda si. */
+@keyframes rodarCifra {
+  from { opacity: 0; transform: translateY(0.42em); }
+  to { opacity: 1; transform: none; }
+}
+
+.cifra-rueda {
+  animation: rodarCifra 240ms var(--curva-entrada) both;
+}
+
+/* El toque recibido enciende el retrato de quien lo recibe. */
+@keyframes encender {
+  0% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--urgente) 45%, transparent); }
+  100% { box-shadow: 0 0 0 9px transparent; }
+}
+
+.encendido {
+  animation: encender 1.1s var(--curva-entrada) 2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .respira,
+  .aviso,
+  .aviso-sale,
+  .cifra-rueda,
+  .encendido {
+    animation: none;
+  }
+}
