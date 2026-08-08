@@ -227,7 +227,7 @@ export function reducir(previo: Tablero, m: MensajeEntrante): Tablero {
           texto: `Puerta ${c.intento}`,
           quien: c.to,
         },
-        ...previo.rastro,
+        ...(previo.rastro ?? []),
       ].slice(0, 12);
       carriles[i] = {
         ...carriles[i],
@@ -255,7 +255,7 @@ export function reducir(previo: Tablero, m: MensajeEntrante): Tablero {
         ...previo,
         rastro: [
           { agente: c.agente, clase: "vencio" as const, texto: `Puerta ${c.intento} venció`, quien: c.aprobador },
-          ...previo.rastro,
+          ...(previo.rastro ?? []),
         ].slice(0, 12),
         carriles,
         aprobadores: aprobadores.map((a) =>
@@ -284,13 +284,13 @@ export function reducir(previo: Tablero, m: MensajeEntrante): Tablero {
             texto: c.decision === "aprobado" ? "Firmada" : "Rechazada",
             quien: c.aprobador,
           },
-          ...previo.rastro,
+          ...(previo.rastro ?? []),
         ].slice(0, 12),
         // Solo las aprobadas: un rechazo mide otra cosa y mezclarlos falsea la mediana.
         firmas:
           c.decision === "aprobado" && c.transcurridoMs > 0
-            ? [...previo.firmas, c.transcurridoMs].slice(-40)
-            : previo.firmas,
+            ? [...(previo.firmas ?? []), c.transcurridoMs].slice(-40)
+            : (previo.firmas ?? []),
         carriles,
         aprobadores: aprobadores.map((a) =>
           a.id === c.aprobador ? { ...a, atendiendo: null } : a

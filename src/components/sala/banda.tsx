@@ -131,8 +131,8 @@ export function BandaHistorica({ tablero }: { tablero: Tablero }) {
     tablero.aprobadores.find((a) => a.id === id)?.nombre ?? id;
   return (
     <div className="banda">
-      <Rastro rastro={tablero.rastro} nombreDe={nombreDe} />
-      <Histograma firmas={tablero.firmas} />
+      <Rastro rastro={tablero.rastro ?? []} nombreDe={nombreDe} />
+      <Histograma firmas={tablero.firmas ?? []} />
     </div>
   );
 }

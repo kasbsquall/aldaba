@@ -618,6 +618,11 @@ export class Sesion {
     return {
       arrancado: true,
       arbitraje: this.ultimoArbitraje,
+      // El rastro y las firmas se acumulan en el cliente reduciendo los mensajes del
+      // canal. La foto los manda vacios, y mandarlos importa: si el campo no viaja,
+      // llega `undefined` y cualquier `.length` en la UI tumba el arbol entero.
+      rastro: [],
+      firmas: [],
       aprobadores: this.rosterVivo(),
       carriles: [...this.carriles.values()].map((c) => ({
         id: c.spec.id,
