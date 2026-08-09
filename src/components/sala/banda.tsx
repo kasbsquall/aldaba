@@ -17,6 +17,13 @@ import type { Tablero } from "@/lib/tablero";
 
 const CUBOS = [0, 15, 30, 45, 60];
 
+const COLOR_ESTADO: Record<string, string> = {
+  firma: "var(--estado-firmada)",
+  vencio: "var(--estado-vencio)",
+  retenida: "var(--estado-retenida)",
+  toque: "var(--estado-corre)",
+};
+
 function Icono({ clase }: { clase: string }) {
   const p = { size: 13, weight: "light" as const, "aria-hidden": true };
   if (clase === "firma") return <Check {...p} />;
@@ -56,7 +63,7 @@ function Rastro({
                 {e.texto}
                 {e.quien ? ` · ${nombreDe(e.quien)}` : ""}
               </span>
-              <span style={{ color: "var(--tinta-tenue)" }}>
+              <span style={{ color: COLOR_ESTADO[e.clase] ?? "var(--tinta-tenue)" }}>
                 <Icono clase={e.clase} />
               </span>
             </li>
@@ -128,6 +135,43 @@ function Histograma({ firmas }: { firmas: number[] }) {
   );
 }
 
+function Remate({ tablero }: { tablero: Tablero }) {
+  const cuenta = (e: string) => tablero.carriles.filter((c) => c.estado === e).length;
+  const firmadas = cuenta("aprobado");
+  const retenidas = cuenta("retenido") + cuenta("rechazado");
+  const enCurso = tablero.carriles.length - firmadas - retenidas;
+  if (firmadas + retenidas === 0) return null;
+
+  const partes: { n: number; texto: string; color: string }[] = [
+    { n: firmadas, texto: firmadas === 1 ? "salió adelante" : "salieron adelante", color: "var(--estado-firmada)" },
+    { n: retenidas, texto: retenidas === 1 ? "quedó retenida" : "quedaron retenidas", color: "var(--estado-retenida)" },
+    { n: enCurso, texto: enCurso === 1 ? "sigue esperando" : "siguen esperando", color: "var(--estado-corre)" },
+  ].filter((p) => p.n > 0);
+
+  return (
+    <section className="remate">
+      <div className="rotulo">Cómo va acabando</div>
+      <p className="remate-frase">
+        {partes.map((p, i) => (
+          <span key={p.texto}>
+            {i > 0 ? (i === partes.length - 1 ? " y " : ", ") : ""}
+            <strong className="dato cifras" style={{ color: p.color }}>
+              {p.n}
+            </strong>{" "}
+            {p.texto}
+          </span>
+        ))}
+        .
+      </p>
+      <p className="remate-nota">
+        Ninguna se ejecutó sin que una persona abriera la puerta. Las retenidas no se
+        perdieron por falta de criterio, se detuvieron porque nadie estaba disponible a
+        tiempo.
+      </p>
+    </section>
+  );
+}
+
 export function BandaHistorica({ tablero }: { tablero: Tablero }) {
   if (!tablero.arrancado) return null;
   // Nunca devolver el id como respaldo. Alguien que entro y ya se fue no esta en el
@@ -138,6 +182,7 @@ export function BandaHistorica({ tablero }: { tablero: Tablero }) {
     <div className="banda">
       <Rastro rastro={tablero.rastro ?? []} nombreDe={nombreDe} />
       <Histograma firmas={tablero.firmas ?? []} />
+      <Remate tablero={tablero} />
     </div>
   );
 }

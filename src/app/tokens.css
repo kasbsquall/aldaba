@@ -80,6 +80,14 @@
   --linea: color-mix(in oklch, var(--hueso-50) 11%, transparent);
   --linea-fuerte: color-mix(in oklch, var(--hueso-50) 22%, transparent);
 
+  /* Colores por estado. Hasta ahora cuatro situaciones distintas compartian un
+   * ambar y varios grises, asi que habia que leer el texto para distinguirlas. Cada
+   * tono significa una cosa y solo una; no hay color decorativo. */
+  --estado-corre: var(--senal-500);      /* el reloj esta bajando */
+  --estado-firmada: oklch(76% 0.145 152); /* alguien abrio la puerta */
+  --estado-vencio: oklch(66% 0.155 25);   /* el plazo se agoto */
+  --estado-retenida: oklch(62% 0.075 285);/* nadie abrio, no se ejecuta */
+
   --urgente: var(--senal-500);
   --urgente-fondo: var(--senal-100);
   --resuelto: var(--resuelto-500);
@@ -531,4 +539,29 @@ p {
 }
 @media (prefers-reduced-motion: reduce) {
   .histo-barra, .rastro-fila { animation: none; }
+}
+
+/* El remate cierra el arco: el contrafactual cuenta el antes, la sala el ahora, y
+   esto dice en que acabo. Ocupa el ancho de la banda para leerse como un cierre. */
+.remate {
+  grid-column: 1 / -1;
+  margin-top: var(--hueco-6);
+  padding-top: var(--hueco-4);
+  border-top: 1px solid var(--linea);
+}
+.remate-frase {
+  margin: 0;
+  font-size: var(--paso-2);
+  line-height: 1.35;
+  text-wrap: balance;
+}
+.remate-frase strong {
+  font-weight: 600;
+}
+.remate-nota {
+  margin: var(--hueco-3) 0 0;
+  max-width: 62ch;
+  font-size: var(--paso--1);
+  color: var(--tinta-tenue);
+  text-wrap: pretty;
 }

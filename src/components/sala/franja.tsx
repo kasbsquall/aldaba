@@ -39,6 +39,13 @@ function Celda({
 
   const cerrado =
     carril.estado === "aprobado" || carril.estado === "rechazado" || carril.estado === "retenido";
+  const colorEstado = corre
+    ? "var(--estado-corre)"
+    : carril.estado === "aprobado"
+      ? "var(--estado-firmada)"
+      : carril.estado === "retenido" || carril.estado === "rechazado"
+        ? "var(--estado-retenida)"
+        : "var(--tinta-tenue)";
 
   return (
     <div
@@ -46,7 +53,7 @@ function Celda({
         minWidth: 0,
         paddingRight: "var(--hueco-3)",
         borderRight: "1px solid var(--linea)",
-        opacity: cerrado ? 0.5 : 1,
+        opacity: cerrado ? 0.62 : 1,
         transition: "opacity var(--dur-ui)",
       }}
     >
@@ -78,7 +85,7 @@ function Celda({
           className="cifras"
           style={{
             fontSize: "var(--paso--1)",
-            color: corre ? "var(--urgente)" : "var(--tinta-tenue)",
+            color: colorEstado,
           }}
         >
           {corre ? `${String(seg).padStart(2, "0")}s` : "—"}
@@ -100,8 +107,8 @@ function Celda({
             height: "100%",
             width: "100%",
             transformOrigin: "left",
-            transform: `scaleX(${proporcion})`,
-            background: corre ? "var(--urgente)" : "transparent",
+            transform: `scaleX(${cerrado ? 1 : proporcion})`,
+            background: cerrado ? colorEstado : corre ? "var(--estado-corre)" : "transparent",
             transition: "transform 1s linear",
           }}
         />
