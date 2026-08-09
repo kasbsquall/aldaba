@@ -1,11 +1,38 @@
+<div align="center">
+
 # Aldaba
 
 **El agente que toca puertas hasta que alguien abre.**
 
-Producto en vivo: **https://aldaba.107-172-6-206.sslip.io**
+Enrutamiento de aprobaciones humanas por presencia en vivo, para agentes de IA que se
+detienen ante un umbral y necesitan una firma.
 
-Construido para The Realtime Hackathon by Portal x Crafter Station, del 7 al 9 de
-agosto de 2026, en solitario.
+[**Probar el producto**](https://aldaba.107-172-6-206.sslip.io) ·
+[Cómo se usó Portal](#cómo-se-usó-portal) ·
+[Arquitectura](#arquitectura) ·
+[Qué es real y qué está guionado](#qué-es-real-y-qué-está-guionado)
+
+![Next.js 16](https://img.shields.io/badge/Next.js-16-000?style=flat-square)
+![Portal SDK](https://img.shields.io/badge/Portal-presencia%20%2B%20inbox-C9A227?style=flat-square)
+![Licencia MIT](https://img.shields.io/badge/licencia-MIT-555?style=flat-square)
+
+</div>
+
+---
+
+> Un agente autónomo termina en segundos. Uno con compuerta humana puede quedarse
+> congelado horas, porque ninguna herramienta del mercado sabe quién está disponible
+> ahora mismo. Portal sí, y por eso Aldaba solo puede existir sobre Portal.
+
+**Construido en solitario** para The Realtime Hackathon by Portal x Crafter Station,
+del 7 al 9 de agosto de 2026.
+
+|                      |                                                                                                            |
+| -------------------- | ---------------------------------------------------------------------------------------------------------- |
+| **Producto en vivo** | https://aldaba.107-172-6-206.sslip.io                                                                      |
+| **Sala**             | Compartida. Quien abre la URL entra como aprobador real y su presencia cambia el enrutamiento de los demás |
+| **Stack**            | Next.js 16, React 19, Portal SDK, Anthropic Messages API                                                   |
+| **Despliegue**       | Proceso largo con pm2 sobre VPS propio, no serverless                                                      |
 
 ---
 
@@ -33,8 +60,8 @@ propia decisión bloqueante y los cinco compiten por las pocas personas conectad
 1. Cada agente **razona en voz alta** por un canal de Portal mientras trabaja.
 2. Al cruzar su umbral, **lee la presencia del canal** para saber quién está conectado
    y libre ahora mismo, no quién debería estar según un calendario.
-3. **Toca esa puerta** por el inbox de Portal, que llega aunque esa persona no esté en
-   el canal donde el agente trabaja.
+3. **Toca esa puerta**: el mensaje viaja público al canal para que el tablero vea la
+   cadena entera, y el puente `notify` dirige la notificación a una sola persona.
 4. Si no le abren dentro del plazo, **escala solo** a la siguiente. El reloj es visible.
 5. Cuando alguien firma, **el agente reanuda al instante**.
 
@@ -66,10 +93,16 @@ tocarle la puerta. Ordena la cadena en tres rangos: conectado y libre, conectado
 ocupado, ausente. Esa reordenación en vivo es lo que ninguna herramienta del mercado
 hace, porque ninguna sabe quién está ahí.
 
-**Inbox para alcanzar a quien no está mirando.** El toque viaja como mensaje público al
-canal, para que el tablero vea la cadena completa, y un puente `notify` declarado en
-`portal.config.ts` lee el destinatario del contenido y dirige la notificación a una
-sola persona. Así el aprobador recibe el aviso sin estar suscrito al canal del caso.
+**Fan-out para quien observa, notificación para quien decide.** Lo obvio sería un envío
+dirigido, pero un dirigido solo lo ve su destinatario y entonces la cadena de
+escalamiento, que es el producto entero, queda invisible para quien está mirando el
+tablero. Así que el toque se publica al canal sin `to`, el destinatario viaja dentro
+del `content`, y el puente `notify` de `portal.config.ts` lo lee de ahí para devolver
+el descriptor con su `to`. Un solo envío, dos audiencias.
+
+El puente está declarado y emite el item de inbox. La interfaz todavía no monta
+`useInbox`, así que hoy el aviso se ve en el tablero y no como notificación fuera de
+él: es el siguiente paso natural y no está hecho.
 
 **Autorización y membresía server-side.** `portal.config.ts` declara `access: "authz"`,
 que admite y une al usuario en el acto, y un callback que rechaza tokens anónimos.
@@ -95,12 +128,12 @@ de eso. `access: "authz"` lo resuelve, pero el valor que parece seguro es el que
 miembros "ocurre en tu backend, fuera de la superficie del SDK" y no dice cómo.
 Probando la API apareció `POST /v1/channels/{id}/members` con `{ userId }`.
 
-**Los mensajes no persisten.** En este entorno el historial de un canal vuelve siempre
-vacío y todo envío resuelve con `seq: undefined`. Lo comprobamos con tipos con punto,
-con guion bajo y sin prefijo, y también en un canal sin configuración alguna, así que
-no era el `authz` ni el `notify`. La consecuencia práctica es que un cliente que se
-conecta un segundo tarde no puede recuperar nada. Aldaba lo resuelve devolviendo una
-foto del estado desde el servidor al arrancar y aplicando los mensajes en vivo encima.
+**Los mensajes efímeros no se entregan.** `send({ ephemeral: true })` resuelve sin
+error, con un ack local de la forma `cl_*` y un `timestamp` anterior al de un envío
+persistente hecho después, y ningún otro cliente del canal recibe el mensaje.
+Reproducido con dos clientes, en un canal con nuestra configuración y en otro sin
+ninguna, así que no era el `authz` ni el prefijo del tipo. El diseño original mandaba
+el razonamiento como efímero; al no entregarse, los doce tipos pasaron a persistentes.
 
 Un detalle menor: `portal.config.ts` se empaqueta y corre en el borde, así que
 `process.env` no tiene nada del entorno local. El issuer va como literal y un script lo
@@ -132,8 +165,9 @@ justo lo que el producto afirma.
 
 Se declara aquí en vez de esconderlo.
 
-**Real:** la presencia, el enrutamiento, la contención, los plazos, el escalamiento, el
-inbox, la identidad y el ciclo completo de firma y reanudación.
+**Real:** la presencia, el enrutamiento, la contención, los plazos, el escalamiento, la
+identidad, el arbitraje por modelo y el ciclo completo de firma y reanudación. El
+puente `notify` emite el item de inbox; la interfaz aún no lo consume.
 
 **Guionado:** las operaciones financieras son ficticias. De los cinco carriles, solo el
 protagonista corre un modelo en vivo si hay `ANTHROPIC_API_KEY`; los otros cuatro
@@ -178,6 +212,19 @@ node scripts/prueba-orquestador.mjs # escalamiento de cinco carriles
 - [docs/02-direccion-diseno.md](docs/02-direccion-diseno.md) · la dirección visual, escrita antes del CSS
 - [docs/07-pendientes.md](docs/07-pendientes.md) · lo abierto y lo resuelto
 - [docs/08-auditorias.md](docs/08-auditorias.md) · auditorías de interacción, wording y composición
+
+## Entrega
+
+|                    |                                             |
+| ------------------ | ------------------------------------------- |
+| Demo grabada       | 84 segundos, en el formulario del hackathon |
+| Demo en vivo       | https://aldaba.107-172-6-206.sslip.io       |
+| Commits del evento | Etiquetados con `the-realtime-hackathon`    |
+
+El vídeo se produjo con Remotion, locución sintetizada con Cartesia, música original y
+efectos de una librería CC0. Todos los datos que aparecen en pantalla salen de una
+sesión real del producto: la mediana de firmas, los motivos que escribe el árbitro y
+los plazos son medidos, no ilustrativos.
 
 ## Licencia
 
