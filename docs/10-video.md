@@ -108,15 +108,16 @@ sopesar señales que se contradicen y suelta detalles. De 8 a 15 etiquetas.
 ## Estilos
 
 ```
-Purposeful instrumental score for a product film. Live drum kit, tight and dry,
-brushed hi-hats, driving but never busy. Warm analog bass pulsing in eighths.
-Bright marimba and muted electric piano carrying a simple hopeful motif over a
-minor-key bed, so it feels alert rather than heavy. Light industrial texture
-underneath. Reference: the propulsive side of a Cliff Martinez or Jon Hopkins
-score, forward-moving and clear-headed. 104 BPM.
+Instrumental post-punk score for a product film. Mid-tempo and heavy, never fast.
+Live drum kit hit hard, dry room, tom-driven, tambourine on the backbeat.
+Overdriven bass guitar carrying the main riff up front. Angular single-coil
+guitar, palm-muted, playing a motorik figure that repeats and never resolves.
+No solos, no lead melody on top. Reference: Neu! and Trans Am playing something
+by Preoccupations. 100 BPM, driving eighths.
 
-At the halfway point the drums open up and low brass swells underneath, then it
-pulls back to the pulse and resolves on one held note.
+It builds in layers rather than in tempo: bass and hi-hat alone at the start,
+then the full kit, and at the halfway point the guitars stack and a second drum
+layer comes in, holding that intensity to the end without ever speeding up.
 
 Leave midrange headroom for a spoken voice.
 ```
@@ -128,8 +129,9 @@ Instrumental.
 ## Excluir estilos
 
 ```
-EDM, trailer braams, epic orchestral, uplifting corporate, pop, vocals, choir,
-cinematic risers, build-drop, dubstep, lo-fi, funereal, ambient drone
+fast hardcore, blast beats, pop punk, ska, punk vocals, screaming, EDM,
+trailer braams, epic orchestral, uplifting corporate, choir, cinematic risers,
+build-drop, lo-fi, ambient drone
 ```
 
 ## Ajustes
@@ -137,20 +139,24 @@ cinematic risers, build-drop, dubstep, lo-fi, funereal, ambient drone
 | Campo | Valor |
 |---|---|
 | Rareza | 35% |
-| Influencia del estilo | 80% |
+| Influencia del estilo | 85% |
 | Duración | Personalizada, 1:45 |
 
-El 80% de influencia es lo que hace que respete lo que escribiste. Más bajo y devuelve
-algo genérico por mucho cuidado que le hayas puesto al texto.
+El 85% de influencia sujeta lo que más tiende a ignorar un modelo cuando le dices punk:
+el "mid-tempo, never fast". Más bajo y devuelve algo genérico por mucho cuidado que le
+hayas puesto al texto.
 
 ## Por qué cambió el carácter
 
-El primer borrador pedía a Reznor y Atticus Ross puntuando un thriller, y salía
-demasiado oscuro. La razón de fondo era buena, un jurado que lleva cuarenta vídeos
-seguidos necesita energía, pero la solución se pasó de frenada. Esta versión mantiene
-el empuje con batería real y bajo pulsante, y mete marimba y piano apagado con un
-motivo sencillo por encima de una base menor. Sigue siendo serio y despierta igual,
-sin sonar a amenaza.
+Dos borradores descartados. El primero pedía a Reznor y Atticus Ross puntuando un
+thriller y salía demasiado oscuro, a amenaza. El segundo corrigió tanto que se quedó
+suave. Esta tercera versión es post-punk instrumental de tempo medio: la urgencia la
+dan el bajo saturado y las corcheas, no la velocidad.
+
+Los 100 BPM son deliberados. El punk va a 160 o 180 y ahí no cabe una locución encima.
+A 100, con el bajo empujando cada corchea, la sensación es de urgencia sin carrera.
+Y lo progresivo va por acumulación de capas, como el krautrock motorik: nunca acelera,
+solo se pone más denso.
 
 ## Cómo se mezcla
 
