@@ -511,7 +511,13 @@ export function CarrilProtagonista({
               {moneda(u.monto)}
             </span>
           </Campo>
-          <Campo etiqueta="Contraparte">{u.contraparte}</Campo>
+          <Campo
+            etiqueta={
+              /colaborador|cliente|empleado/i.test(u.contraparte) ? "Afecta a" : "Contraparte"
+            }
+          >
+            {u.contraparte}
+          </Campo>
           <Campo etiqueta="Regla que lo detuvo">{u.regla}</Campo>
         </dl>
       )}
@@ -636,7 +642,13 @@ function Cadena({ carril, nombreDe }: { carril: CarrilVista; nombreDe: (id: stri
           margin: "var(--hueco-2) 0 0",
         }}
       >
-        {carril.cadena.slice(-3).map((p, i) => (
+        {carril.cadena
+          .slice(-3)
+          // Sin esto la cadena podia pintar "1 M. Rivas / 2 M. Rivas": correcto por
+          // dentro, porque al resto ya se le habia tocado, y una contradiccion en
+          // pantalla con la frase que sostiene el producto. Una puerta, una persona.
+          .filter((p, i, xs) => xs.findIndex((q) => q.aprobador === p.aprobador) === i)
+          .map((p, i) => (
           <li
             key={`${p.aprobador}-${i}`}
             className="surge-fila"
