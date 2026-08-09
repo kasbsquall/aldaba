@@ -21,7 +21,12 @@ import type { AgenteSpec } from "./cast";
  * cadena de escalamiento sería decoración y el producto se quedaría sin premisa.
  */
 
-const MODELO = "claude-sonnet-5";
+// Haiku y no Sonnet. La tarea es ordenar cinco elementos por severidad, monto y
+// tiempo congelado, y escribir una frase de menos de 130 caracteres. Eso no pide el
+// modelo grande. Medido: 260 tokens de entrada y 257 de salida por llamada, con un
+// tope de un arbitraje cada 12 segundos. Si la calidad del motivo bajara, el respaldo
+// determinista sigue detras y la pantalla no se entera.
+const MODELO = "claude-haiku-4-5-20251001";
 
 export interface EnDisputa {
   agente: AgenteSpec;
