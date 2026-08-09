@@ -67,3 +67,99 @@ salga en pantalla es real y medido; el guion tiene que quedarse en eso.
 ## Pitch para el formulario
 
 Opción D, 184 caracteres, en `docs/09-entrega.md`.
+
+---
+
+# Guion y locución
+
+Estilo de alguien probando la app, no de pitch. Español de Perú, tono tranquilo.
+Nada de cifras inventadas: todo lo que se dice está en pantalla. Unas 190 palabras,
+que en español dan entre 90 y 95 segundos con las pausas.
+
+La frase que se repite y se queda es "le toca la puerta a esa persona", que además
+es la marca.
+
+| Tiempo | Escena | Locución |
+|---|---|---|
+| 0:00–0:06 | Frío: los cinco relojes bajando a la vez | Cinco operaciones. Cinco relojes. Y una sola persona libre. |
+| 0:06–0:16 | El problema | Un agente que necesita permiso hoy escribe en un canal y se queda esperando. El mensaje sale a un sitio donde puede que no haya nadie mirando. |
+| 0:16–0:28 | La sala | Aldaba hace otra cosa. Mira quién está conectado en este momento y le toca la puerta a esa persona. |
+| 0:28–0:40 | Por qué se detuvo | Cada operación enseña la regla que la detuvo y lo que el agente había pensado antes de pararse. Esta es una transferencia a una contraparte sin historial. |
+| 0:40–0:50 | Te tocan (entra el aviso) | Y cuando te toca a ti, lo sabes. Diecisiete segundos para decidir. |
+| 0:50–0:58 | La firma | Firmo. El agente sigue. Segundos, no horas. |
+| 0:58–1:08 | El escalado | Si no abro, no se queda esperando. Escala solo a la siguiente persona disponible. Tres puertas, y si nadie abre, la operación se retiene. |
+| 1:08–1:20 | El árbitro | Cuando hay más operaciones que personas, un modelo reparte la cola y explica por qué. Decide el orden. Nunca el dinero. |
+| 1:20–1:28 | Los datos | La mediana real de esta sesión, seis segundos hasta la firma. |
+| 1:28–1:36 | Remate | Ninguna se ejecutó sin que una persona abriera la puerta. |
+
+# El prompt de Suno (v5.5)
+
+Verificado contra la documentación, y corregido respecto al primer borrador.
+
+**Lo que NO funciona y había que quitar:** una línea de tiempo minuto a minuto en el
+campo de estilos. Suno no la respeta. Es algo que repiten muchas guías y que no está
+en el material oficial. Lo que sí acepta es **un único punto de transición**, indicando
+qué cambia y aproximadamente cuándo, normalmente a un tercio o a la mitad del tema.
+
+**Lo demás que dice la documentación:** el punto dulce está entre 80 y 200 palabras.
+Por debajo de 80 el modelo rellena con valores por defecto; por encima de 200 empieza a
+sopesar señales que se contradicen y suelta detalles. De 8 a 15 etiquetas.
+
+## Estilos
+
+```
+Purposeful instrumental score for a product film. Live drum kit, tight and dry,
+brushed hi-hats, driving but never busy. Warm analog bass pulsing in eighths.
+Bright marimba and muted electric piano carrying a simple hopeful motif over a
+minor-key bed, so it feels alert rather than heavy. Light industrial texture
+underneath. Reference: the propulsive side of a Cliff Martinez or Jon Hopkins
+score, forward-moving and clear-headed. 104 BPM.
+
+At the halfway point the drums open up and low brass swells underneath, then it
+pulls back to the pulse and resolves on one held note.
+
+Leave midrange headroom for a spoken voice.
+```
+
+## Letra
+
+Instrumental.
+
+## Excluir estilos
+
+```
+EDM, trailer braams, epic orchestral, uplifting corporate, pop, vocals, choir,
+cinematic risers, build-drop, dubstep, lo-fi, funereal, ambient drone
+```
+
+## Ajustes
+
+| Campo | Valor |
+|---|---|
+| Rareza | 35% |
+| Influencia del estilo | 80% |
+| Duración | Personalizada, 1:45 |
+
+El 80% de influencia es lo que hace que respete lo que escribiste. Más bajo y devuelve
+algo genérico por mucho cuidado que le hayas puesto al texto.
+
+## Por qué cambió el carácter
+
+El primer borrador pedía a Reznor y Atticus Ross puntuando un thriller, y salía
+demasiado oscuro. La razón de fondo era buena, un jurado que lleva cuarenta vídeos
+seguidos necesita energía, pero la solución se pasó de frenada. Esta versión mantiene
+el empuje con batería real y bajo pulsante, y mete marimba y piano apagado con un
+motivo sencillo por encima de una base menor. Sigue siendo serio y despierta igual,
+sin sonar a amenaza.
+
+## Cómo se mezcla
+
+Con el mp3 de Suno ya descargado:
+
+```
+MUSIC_FILE=/ruta/al/suno.mp3 python C:/Users/User/.claude/skills/hackathon-video/scripts/audio_gen.py --provider cartesia
+```
+
+Ese script sintetiza cada escena por separado, la mide con ffprobe y saca
+`scene_timing.json`, de donde salen los tiempos. Así el vídeo se sincroniza con las
+palabras reales y no con una estimación.
