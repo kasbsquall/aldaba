@@ -15,8 +15,12 @@ export async function GET(request: Request) {
   const params = new URL(request.url).searchParams;
   const pedido = params.get("as");
 
-  // Los sembrados piden su identidad por id; los humanos traen la suya.
-  const sembrado = SEMBRADOS.find((a) => a.id === pedido);
+  // Los sembrados solo se acuñan desde dentro del proceso, con el secreto que
+  // comparten servidor y actores. Sin esta guarda cualquiera pedia el token de
+  // M. Rivas, el actor que por guion nunca abre la puerta, y firmaba en su nombre:
+  // con eso se desmonta desde otra pestaña la demostracion central del producto.
+  const interno = params.get("k") === (process.env.ALDABA_INTERNAL_KEY ?? "");
+  const sembrado = interno ? SEMBRADOS.find((a) => a.id === pedido) : undefined;
 
   const identidad = sembrado
     ? { id: sembrado.id, nombre: sembrado.nombre, rol: sembrado.rol }
@@ -31,7 +35,17 @@ export async function GET(request: Request) {
       userId: identidad.id,
       username: identidad.nombre,
     });
-    return Response.json({ token, identidad });
+    // El mismo token viaja como cookie httpOnly. Asi el navegador acredita quien es
+    // al firmar sin que el cliente tenga que manejarlo, y el servidor deja de creerse
+    // el nombre que venga en el cuerpo de la peticion.
+    return Response.json(
+      { token, identidad },
+      {
+        headers: {
+          "set-cookie": `aldaba_id=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=7200`,
+        },
+      }
+    );
   } catch (error) {
     const motivo = error instanceof Error ? error.message : "error desconocido";
     return Response.json({ error: "no_se_pudo_emitir_token", motivo }, { status: 500 });
