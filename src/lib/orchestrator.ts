@@ -53,6 +53,8 @@ export class Sesion {
   private dadosDeAlta = new Set<string>();
   /** Evita llamar al arbitro en cada toque durante el mismo episodio. */
   private arbitrando = false;
+  /** Instante del ultimo evento publicado. Una sala sin latido reciente esta parada. */
+  ultimoLatido = Date.now();
   private ultimoArbitraje: { motivo: string; libres: number; porModelo: boolean } | null =
     null;
   /** Cuantos relevos lleva la sala. Alimenta la variacion de las operaciones. */
@@ -70,6 +72,7 @@ export class Sesion {
     if (this.viva) return;
     this.viva = true;
     this.arrancadaEn = Date.now();
+    this.ultimoLatido = Date.now();
 
     // Sin esto, tocar la puerta falla con `not_member`: un envio dirigido exige que
     // el destinatario sea miembro, y el aprobador solo escucha su inbox.
@@ -774,6 +777,23 @@ export async function sesionDe(sesionId: string): Promise<Sesion> {
     await s.arrancar();
   }
   return s;
+}
+
+/**
+ * Una sala parada se reinicia sola al abrirla.
+ *
+ * Un jurado abrio la URL en frio y encontro cinco rayas, cero eventos y la tarjeta
+ * diciendo a la vez "no abrio" y "le toca": la sala llevaba horas terminada. Solo
+ * revivio al pulsar "Reiniciar escenario", y quien no descubra ese boton se lleva la
+ * impresion de un producto muerto. Nadie deberia tener que encontrar un boton para
+ * ver moverse el producto.
+ */
+export function estaParada(sesionId: string): boolean {
+  const s = sesiones.get(sesionId);
+  if (!s) return false;
+  // El plazo mas largo del escenario es 30s. Sin un evento en el triple de eso, no
+  // esta lenta: esta terminada.
+  return Date.now() - s.ultimoLatido > 90_000;
 }
 
 export function reiniciar(sesionId: string): void {

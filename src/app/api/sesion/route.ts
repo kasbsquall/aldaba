@@ -1,4 +1,4 @@
-import { sesionDe, reiniciar } from "@/lib/orchestrator";
+import { sesionDe, reiniciar, estaParada } from "@/lib/orchestrator";
 import { canalDeCaso } from "@/lib/protocol";
 
 // Arranca la sala. El escenario empieza solo cuando alguien abre la URL: nunca hay
@@ -12,7 +12,9 @@ export async function POST(request: Request) {
     .catch(() => ({}) as { sesionId?: string; reset?: boolean });
 
   try {
-    if (reset) reiniciar(sesionId);
+    // Reinicio explicito, o automatico si la sala lleva mas de minuto y medio sin un
+    // solo evento. Quien abre la URL tiene que ver algo moviendose, siempre.
+    if (reset || estaParada(sesionId)) reiniciar(sesionId);
     const sesion = await sesionDe(sesionId);
 
     // Devuelve la foto del tablero, no solo un acuse.
