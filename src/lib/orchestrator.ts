@@ -673,6 +673,9 @@ export class Sesion {
   }
 
   private publicar(mensaje: MensajeAldaba, para?: string) {
+    // Cada publicacion ES el latido. Sin esto la sala se declara parada a los 90
+    // segundos de nacer, este viva o no.
+    this.ultimoLatido = Date.now();
     return this.sala.publicar(mensaje, para);
   }
 
